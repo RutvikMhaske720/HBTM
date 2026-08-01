@@ -25,7 +25,7 @@ const STEPS = [
 
 export default function Home() {
   return (
-    <>
+    <div className="theme-landing">
       <Navbar />
       <main className="flex-1 bg-(--color-bg-primary)">
         <InteractiveHero>
@@ -92,6 +92,6 @@ export default function Home() {
           </Reveal>
         </section>
       </main>
-    </>
+    </div>
   );
 }

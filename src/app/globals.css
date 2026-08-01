@@ -40,6 +40,35 @@
   --foreground: var(--color-ink);
 }
 
+/* Landing page only — off-white / white / beige / black, per brand spec.
+   Scoped so the rest of the app (dashboard, onboarding) keeps its own palette. */
+.theme-landing {
+  --color-bg-primary: #ffffff;
+  --color-bg-offwhite: #f7f5f0;
+  --color-bg-beige: #ede6d6;
+  --color-bg-beige-deep: #e2d8c2;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f7f5f0;
+  --color-border: #e5e1d8;
+  --color-border-subtle: #efece4;
+
+  --color-ink: #0d0d0d;
+  --color-ink-soft: #2e2e2e;
+  --color-text-secondary: #4b4b4b;
+  --color-text-tertiary: #8a8a8a;
+  --color-text-inverse: #ffffff;
+
+  --color-accent-secondary: #0d0d0d;
+  --color-accent-tertiary: #4b4b4b;
+  --color-accent-warm: #8a8a8a;
+  --color-accent-focus: #2e2e2e;
+
+  --color-spotlight: #ffffff;
+
+  background: var(--color-bg-primary);
+  color: var(--color-ink);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

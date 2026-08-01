@@ -94,6 +94,11 @@ export interface ContentItem {
   mood: string;
   source: string;
   url: string;
+  thumbnail_url: string;
+  video_id: string;
+  published_at: string;
+  viewed: boolean;
+  preview_available: boolean;
 }
 
 export interface IdentityNode {
@@ -233,14 +238,21 @@ export const api = {
     ),
 
   /** Content library */
-  getContent: (params?: { domain?: string; content_type?: string; difficulty?: string; limit?: number }) => {
+  getContent: (params?: { domain?: string; content_type?: string; difficulty?: string; user_id?: string; limit?: number }) => {
     const qs = new URLSearchParams();
     if (params?.domain) qs.set("domain", params.domain);
     if (params?.content_type) qs.set("content_type", params.content_type);
     if (params?.difficulty) qs.set("difficulty", params.difficulty);
+    if (params?.user_id) qs.set("user_id", params.user_id);
     if (params?.limit) qs.set("limit", String(params.limit));
     return req<ContentItem[]>(`/api/v1/content?${qs}`);
   },
+
+  getMoreLikeThis: (contentType: string, domain?: string) =>
+    req<ContentItem[]>("/api/v1/content/more-like-this", {
+      method: "POST",
+      body: JSON.stringify({ content_type: contentType, domain }),
+    }),
 
   getContentItem: (contentId: string) =>
     req<ContentItem>(`/api/v1/content/${contentId}`),

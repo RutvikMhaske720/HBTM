@@ -102,6 +102,16 @@ def get_feedback_history(db: Store, user_id: str, time_range_days: int = 90) -> 
     ]
 
 
+def get_viewed_content_ids(db: Store, user_id: str) -> set[str]:
+    """Return every catalogue item this user has opened."""
+    return {
+        event["content_id"]
+        for event in db.interaction_events.filter(
+            lambda event: event["user_id"] == user_id and event["interaction_type"] == "viewed"
+        )
+    }
+
+
 def record_interaction(db: Store, user_id: str, content_id: str, interaction_type: str) -> None:
     event = new_interaction_event(user_id=user_id, content_id=content_id, interaction_type=interaction_type)
     db.interaction_events.upsert(event)

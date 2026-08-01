@@ -2,14 +2,16 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.api.schemas import ContentItemOut, FeedbackPayload
+from app.agents.content_ingestion import fetch_more_like_this
+from app.api.schemas import ContentItemOut, FeedbackPayload, MoreLikeThisPayload
 from app.db.database import Store, get_db
 from app.mcp_tools import internal_db
+from app.config import get_settings
 
 router = APIRouter(prefix="/api/v1/content", tags=["content"])
 
 
-def _item_to_out(item: dict) -> ContentItemOut:
+def _item_to_out(item: dict, viewed_ids: set[str] | None = None) -> ContentItemOut:
     return ContentItemOut(
         id=item["id"],
         title=item["title"],
@@ -22,6 +24,11 @@ def _item_to_out(item: dict) -> ContentItemOut:
         mood=item["mood"],
         source=item["source"],
         url=item.get("url", ""),
+        thumbnail_url=item.get("thumbnail_url", ""),
+        video_id=item.get("video_id", ""),
+        published_at=item["published_at"],
+        viewed=item["id"] in (viewed_ids or set()),
+        preview_available=bool(item.get("video_id")) and not get_settings().youtube_mocked,
     )
 
 
@@ -30,6 +37,7 @@ def list_content(
     domain: str | None = None,
     content_type: str | None = None,
     difficulty: str | None = None,
+    user_id: str | None = None,
     limit: int = 50,
     offset: int = 0,
     db: Store = Depends(get_db),
@@ -45,6 +53,14 @@ def list_content(
         return True
 
     items = db.content_items.filter(matches)[offset : offset + limit]
+    viewed_ids = internal_db.get_viewed_content_ids(db, user_id) if user_id else set()
+    return [_item_to_out(item, viewed_ids) for item in items]
+
+
+@router.post("/more-like-this", response_model=list[ContentItemOut])
+def get_more_like_this(payload: MoreLikeThisPayload, db: Store = Depends(get_db)):
+    """Persist a small, type-scoped batch from the configured content sources."""
+    items = fetch_more_like_this(db, payload.content_type, payload.domain)
     return [_item_to_out(item) for item in items]
 
 

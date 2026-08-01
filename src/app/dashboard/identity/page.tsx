@@ -13,10 +13,12 @@ const NODE_COLORS: Record<string, string> = {
   value: "#A8497A",
 };
 
-const SVG_W = 760;
-const SVG_H = 440;
-const ME_HUB = { x: 150, y: 220 };
-const IAM_HUB = { x: 610, y: 220 };
+const SVG_W = 900;
+const SVG_H = 560;
+const ME_HUB = { x: 190, y: 300 };
+const IAM_HUB = { x: 710, y: 300 };
+const ARC_SPREAD = 190;
+const RADII = [116, 158, 202];
 
 type LayoutNode = { node: IdentityNode; x: number; y: number };
 
@@ -24,7 +26,7 @@ function arcLayout(nodes: IdentityNode[], hub: { x: number; y: number }, centerA
   const n = nodes.length;
   return nodes.map((node, i) => {
     const angle = n === 1 ? centerAngle : centerAngle - spread / 2 + (spread / (n - 1)) * i;
-    const radius = i % 2 === 0 ? 128 : 168;
+    const radius = RADII[i % RADII.length];
     const rad = (angle * Math.PI) / 180;
     return { node, x: hub.x + radius * Math.cos(rad), y: hub.y + radius * Math.sin(rad) };
   });
@@ -48,8 +50,8 @@ export default function IdentityPage() {
   const currentNarrative = graph?.nodes.find((n) => n.polarity === "current" && n.node_type === "narrative")?.label;
   const imaginedNarrative = graph?.nodes.find((n) => n.polarity === "imagined" && n.node_type === "narrative")?.label;
 
-  const currentLayout = useMemo(() => arcLayout(currentNodes, ME_HUB, 180, 150), [currentNodes]);
-  const imaginedLayout = useMemo(() => arcLayout(imaginedNodes, IAM_HUB, 0, 150), [imaginedNodes]);
+  const currentLayout = useMemo(() => arcLayout(currentNodes, ME_HUB, 180, ARC_SPREAD), [currentNodes]);
+  const imaginedLayout = useMemo(() => arcLayout(imaginedNodes, IAM_HUB, 0, ARC_SPREAD), [imaginedNodes]);
 
   const allNodes = [...currentNodes, ...imaginedNodes];
   const avgWeight = allNodes.length > 0
@@ -107,7 +109,7 @@ export default function IdentityPage() {
                 traits as orbiting nodes, a "becoming" edge joins the two hubs */}
             <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-offwhite) p-6">
               <svg
-                viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+                viewBox={`-220 0 ${SVG_W + 440} ${SVG_H}`}
                 className="w-full h-auto"
                 role="img"
                 aria-label="Identity graph: current-self traits fan left from a Me hub, imagined-self traits fan right from an I Am hub, joined by a becoming edge"

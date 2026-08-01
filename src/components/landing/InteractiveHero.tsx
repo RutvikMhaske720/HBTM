@@ -28,9 +28,11 @@ export default function InteractiveHero({
     <div
       ref={heroRef}
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen w-full overflow-hidden bg-(--color-bg-primary)"
+      className="relative min-h-screen w-full overflow-hidden bg-black"
     >
-      {/* Cursor-reactive spotlight — the warm beam falling across the dark room */}
+      {/* This section stays dark regardless of the surrounding light landing
+          theme — it hosts the photo-collage background + overlay, and needs
+          light text to stay legible over it. */}
       <div
         ref={spotlightRef}
         className="pointer-events-none absolute inset-0 transition-opacity duration-300"
@@ -39,7 +41,7 @@ export default function InteractiveHero({
             "--spot-x": "50%",
             "--spot-y": "35%",
             background:
-              "radial-gradient(700px circle at var(--spot-x) var(--spot-y), color-mix(in srgb, var(--color-spotlight) 22%, transparent), transparent 70%)",
+              "radial-gradient(700px circle at var(--spot-x) var(--spot-y), rgba(255,255,255,0.22), transparent 70%)",
           } as React.CSSProperties
         }
       />
@@ -147,13 +149,13 @@ export default function InteractiveHero({
         >
           <MagneticButton
             href="/onboarding"
-            className="inline-block rounded-full bg-(--color-accent-secondary) px-7 py-3.5 text-[15px] font-medium text-(--color-text-inverse) transition-transform hover:-translate-y-0.5"
+            className="inline-block rounded-full bg-white px-7 py-3.5 text-[15px] font-medium text-black transition-transform hover:-translate-y-0.5"
           >
             Start Here
           </MagneticButton>
           <MagneticButton
             href="/onboarding"
-            className="inline-block rounded-full border border-(--color-ink-soft)/30 px-7 py-3.5 text-[15px] font-medium text-(--color-ink) transition-colors hover:bg-white/10"
+            className="inline-block rounded-full border border-white/30 px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-white/10"
           >
             I want to be better
           </MagneticButton>

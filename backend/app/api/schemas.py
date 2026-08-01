@@ -30,6 +30,11 @@ class FeedbackPayload(BaseModel):
     interaction_type: str  # thumbs_up | thumbs_down | done | save | not_for_me | too_easy | too_advanced | viewed
 
 
+class MoreLikeThisPayload(BaseModel):
+    content_type: str
+    domain: str | None = None
+
+
 class RunRequest(BaseModel):
     user_id: str
     trigger_type: str = "user_request"
@@ -133,6 +138,11 @@ class ContentItemOut(BaseModel):
     mood: str
     source: str
     url: str
+    thumbnail_url: str = ""
+    video_id: str = ""
+    published_at: datetime
+    viewed: bool = False
+    preview_available: bool = False
 
     class Config:
         from_attributes = True

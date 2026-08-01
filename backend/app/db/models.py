@@ -54,12 +54,14 @@ def new_content_item(
     *, id: str | None = None, title: str, content_type: str, domain: str, description: str = "",
     growth_potential_score: float = 0.5, difficulty: str = "accessible", duration_minutes: int = 10,
     mood: str = "reflective", source: str = "internal", url: str = "",
-    published_at: str | None = None, embedding: list[float] | None = None,
+    thumbnail_url: str = "", video_id: str = "", published_at: str | None = None,
+    embedding: list[float] | None = None,
 ) -> Record:
     return Record(
         id=id or _uuid(), title=title, content_type=content_type, domain=domain, description=description,
         growth_potential_score=growth_potential_score, difficulty=difficulty, duration_minutes=duration_minutes,
-        mood=mood, source=source, url=url, published_at=published_at or _now(), embedding=embedding or [],
+        mood=mood, source=source, url=url, thumbnail_url=thumbnail_url, video_id=video_id,
+        published_at=published_at or _now(), embedding=embedding or [],
     )
 
 
