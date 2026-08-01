@@ -8,6 +8,9 @@ class Settings(BaseSettings):
 
     data_dir: str = "./data"
     database_url: str = "sqlite:///./data/iabtm.db"
+    supabase_url: str = ""
+    supabase_database_url: str = ""
+    supabase_secret_key: str = ""
 
     youtube_api_key: str = ""
     pinterest_client_id: str = ""
@@ -39,6 +42,7 @@ class Settings(BaseSettings):
     @property
     def spotify_configured(self) -> bool:
         return bool(self.spotify_client_id and self.spotify_client_secret)
+
 
     @property
     def reddit_mocked(self) -> bool:

@@ -21,6 +21,7 @@ async function req<T>(path: string, options?: RequestInit): Promise<T> {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface OnboardingPayload {
+  user_id?: string;
   name: string;
   profile_name: string;
   email: string;
@@ -248,10 +249,10 @@ export const api = {
     return req<ContentItem[]>(`/api/v1/content?${qs}`);
   },
 
-  getMoreLikeThis: (contentType: string, domain?: string) =>
+  getMoreLikeThis: (contentType: string, domain?: string, userId?: string) =>
     req<ContentItem[]>("/api/v1/content/more-like-this", {
       method: "POST",
-      body: JSON.stringify({ content_type: contentType, domain }),
+      body: JSON.stringify({ content_type: contentType, domain, user_id: userId }),
     }),
 
   getContentItem: (contentId: string) =>

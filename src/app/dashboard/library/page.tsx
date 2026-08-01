@@ -66,7 +66,7 @@ export default function LibraryPage() {
     setGettingMore(true);
     setError("");
     try {
-      await api.getMoreLikeThis(contentType, goals[0]?.domain);
+      await api.getMoreLikeThis(contentType, goals[0]?.domain, userId ?? undefined);
       await load();
       setFilter("Global");
     } catch (error) {

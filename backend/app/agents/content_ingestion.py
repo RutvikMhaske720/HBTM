@@ -12,14 +12,15 @@ def _stable_id(source: str, external_id: str) -> str:
 
 
 def fetch_more_like_this(
-    db: Store, content_type: str, domain: str | None = None, max_results: int = 6
+    db: Store, content_type: str, domain: str | None = None, max_results: int = 6, goal_titles: list[str] | None = None
 ) -> list[dict]:
     """Fetch and persist a few source items for one media type.
 
     The MCP source modules remain the single seam for real-vs-mocked data.
     """
     resolved_domain = domain or "Knowledge"
-    query = f"{resolved_domain} {content_type}"
+    goal_context = " ".join(goal_titles or [])
+    query = f"{goal_context or resolved_domain} {content_type}"
     created: list[dict] = []
 
     if content_type == "Editorial":
@@ -63,21 +64,20 @@ def fetch_more_like_this(
             return created
 
     if content_type == "Music":
-        for track in spotify.search_tracks(query=query, max_results=max_results):
+        # Spotify can be temporarily unavailable because of its app/account
+        # policy. Keep Music useful by falling back to YouTube in that case.
+        try:
+            tracks = spotify.search_tracks(query=query, max_results=max_results)
+        except Exception:
+            tracks = []
+        for track in tracks:
             record = new_content_item(
                 id=_stable_id("spotify", track["track_id"]),
-                title=track["title"],
-                content_type="Music",
-                domain=resolved_domain,
-                description=track["description"],
-                growth_potential_score=0.6,
-                difficulty="accessible",
-                duration_minutes=max(1, track["duration_seconds"] // 60),
-                mood="curious",
-                source="spotify",
-                url=track["url"],
-                thumbnail_url=track["thumbnail_url"],
-                published_at=track["published_at"],
+                title=track["title"], content_type="Music", domain=resolved_domain,
+                description=track["description"], growth_potential_score=0.6,
+                difficulty="accessible", duration_minutes=max(1, track["duration_seconds"] // 60),
+                mood="curious", source="spotify", url=track["url"],
+                thumbnail_url=track["thumbnail_url"], published_at=track["published_at"],
             )
             created.append(db.content_items.upsert(record))
         if created:

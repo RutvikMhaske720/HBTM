@@ -23,6 +23,7 @@ def onboard_user(payload: OnboardingPayload, db: Store = Depends(get_db)):
     Returns the new user_id so the frontend can store it in state.
     """
     user = new_user(
+        id=payload.user_id,
         name=payload.name,
         profile_name=payload.profile_name,
         email=payload.email,

@@ -1,9 +1,4 @@
-"""Spotify catalogue search for curated Music recommendations.
-
-Uses the server-side Client Credentials flow. No Spotify credential is sent to
-the browser; the browser only receives public Spotify track URLs for playback
-in Spotify's own embedded player.
-"""
+"""Server-side Spotify catalogue search for curated Music."""
 
 import threading
 import time
@@ -33,24 +28,21 @@ def _access_token() -> str:
             timeout=15,
         )
         response.raise_for_status()
-        data = response.json()
-        _token = data["access_token"]
-        _token_expires_at = time.time() + int(data.get("expires_in", 3600)) - 60
+        payload = response.json()
+        _token = payload["access_token"]
+        _token_expires_at = time.time() + int(payload.get("expires_in", 3600)) - 60
         return _token
 
 
 def search_tracks(query: str, max_results: int = 6) -> list[dict]:
-    """Search Spotify's public track catalogue in the configured market."""
+    """Search tracks available in the configured market."""
     settings = get_settings()
     if not settings.spotify_configured:
         return []
     response = httpx.get(
         "https://api.spotify.com/v1/search",
         headers={"Authorization": f"Bearer {_access_token()}"},
-        params={
-            "q": query, "type": "track", "limit": min(max(max_results, 1), 10),
-            "market": settings.spotify_market,
-        },
+        params={"q": query, "type": "track", "limit": min(max(max_results, 1), 10), "market": settings.spotify_market},
         timeout=15,
     )
     response.raise_for_status()
@@ -59,8 +51,8 @@ def search_tracks(query: str, max_results: int = 6) -> list[dict]:
         track_id = track.get("id")
         if not track_id:
             continue
-        artists = ", ".join(artist["name"] for artist in track.get("artists", []))
         album = track.get("album", {})
+        artists = ", ".join(artist["name"] for artist in track.get("artists", []))
         image = next((image.get("url", "") for image in album.get("images", []) if image.get("url")), "")
         tracks.append({
             "track_id": track_id,

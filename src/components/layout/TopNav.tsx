@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useIdentityStore } from "@/lib/store/identity.store";
 import { useAgentStore } from "@/lib/store/agent.store";
 import { api } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 const STATUS_DOT: Record<string, string> = {
   idle: "bg-(--color-text-tertiary)",
@@ -27,6 +29,8 @@ export default function TopNav() {
   const setAgentStatus = useAgentStore((s) => s.setAgentStatus);
   const setRunId = useAgentStore((s) => s.setRunId);
   const setConfidence = useAgentStore((s) => s.setConfidence);
+  const clearIdentity = useIdentityStore((s) => s.clear);
+  const router = useRouter();
 
   // Poll agent status every 5s
   useEffect(() => {
@@ -85,9 +89,9 @@ export default function TopNav() {
         </div>
 
         {/* User avatar */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-(--color-accent-secondary) text-[13px] font-bold text-(--color-text-inverse)">
+        <button onClick={() => void supabase.auth.signOut().then(() => { clearIdentity(); router.replace("/auth"); })} title="Sign out" className="flex h-8 w-8 items-center justify-center rounded-full bg-(--color-accent-secondary) text-[13px] font-bold text-(--color-text-inverse)">
           {name.charAt(0).toUpperCase()}
-        </div>
+        </button>
       </div>
     </header>
   );

@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 # ─── Request Models ────────────────────────────────────────────────────────────
 
 class OnboardingPayload(BaseModel):
+    user_id: str | None = None
     current_self: list[str] = Field(default_factory=list)
     imagined_self: list[str] = Field(default_factory=list)
     current_self_notes: str = ""
@@ -33,6 +34,7 @@ class FeedbackPayload(BaseModel):
 class MoreLikeThisPayload(BaseModel):
     content_type: str
     domain: str | None = None
+    user_id: str | None = None
 
 
 class RunRequest(BaseModel):

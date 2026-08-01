@@ -67,11 +67,9 @@ additionally needs `REDDIT_CLIENT_ID`, `REDDIT_CLIENT_SECRET`, and a descriptive
 `REDDIT_USER_AGENT`. `OPENAI_API_KEY` is optional and is only needed if you
 choose to replace the local embedding approach with OpenAI embeddings.
 
-For live **Music**, set `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, and an
-optional `SPOTIFY_MARKET` (default: `IN`). Music discovery uses Spotify's
-server-side Client Credentials flow; results open in Spotify and use Spotify's
-official embedded player in the preview modal. Do not use Spotify audio or
-catalogue data for model training.
+Live **Music** first uses Spotify with `SPOTIFY_CLIENT_ID` and
+`SPOTIFY_CLIENT_SECRET`, then falls back to YouTube if Spotify is unavailable.
+Spotify results use the official embed player and an external Spotify link.
 
 For production, use a managed PostgreSQL instance (for example Supabase,
 Neon, or RDS), put its connection URL in the deployment's secret manager, and

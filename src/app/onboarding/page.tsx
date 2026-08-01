@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import type { GoalSuggestion } from "@/lib/api";
 import { useIdentityStore } from "@/lib/store/identity.store";
 import { useAgentStore } from "@/lib/store/agent.store";
+import { supabase } from "@/lib/supabase";
 
 // --- Data -------------------------------------------------------------
 
@@ -462,6 +463,7 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [apiRecs, setApiRecs] = useState<typeof SAMPLE_RECS>([]);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const router = useRouter();
   const setUserId = useIdentityStore((s) => s.setUserId);
   const setProfile = useIdentityStore((s) => s.setProfile);
@@ -470,6 +472,26 @@ export default function OnboardingPage() {
   const setRunId = useAgentStore((s) => s.setRunId);
 
   const totalSteps = 5;
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!active) return;
+      if (!session) {
+        router.replace("/auth");
+        return;
+      }
+      setAuthUserId(session.user.id);
+      setForm((current) => ({ ...current, email: current.email || session.user.email || "", name: current.name || String(session.user.user_metadata.full_name || "") }));
+      try {
+        await api.getProfile(session.user.id);
+        router.replace("/dashboard");
+      } catch {
+        // A missing profile means this account needs its first onboarding pass.
+      }
+    });
+    return () => { active = false; };
+  }, [router]);
 
   const isValid = useMemo(() => {
     switch (step) {
@@ -498,7 +520,9 @@ export default function OnboardingPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      if (!authUserId) throw new Error("Your session has expired. Please sign in again.");
       const payload = {
+        user_id: authUserId,
         name: form.name,
         profile_name: form.profileName,
         email: form.email,

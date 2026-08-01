@@ -36,8 +36,11 @@ class Embedder:
         if not self._fitted or self._vectorizer is None or self._svd is None:
             self.fit([text])
         tfidf = self._vectorizer.transform([text or ""])
-        vec = self._svd.transform(tfidf)[0]
-        return vec.tolist()
+        vec = self._svd.transform(tfidf)[0].tolist()
+        # pgvector requires every vector in an indexed column to have the
+        # same dimension. SVD can produce fewer components for small corpora,
+        # so we deterministically zero-pad to the public embedding dimension.
+        return (vec + [0.0] * EMBEDDING_DIM)[:EMBEDDING_DIM]
 
     def embed_many(self, texts: list[str]) -> list[list[float]]:
         return [self.embed_text(t) for t in texts]

@@ -28,7 +28,6 @@ def _item_to_out(item: dict, viewed_ids: set[str] | None = None) -> ContentItemO
         video_id=item.get("video_id", ""),
         published_at=item["published_at"],
         viewed=item["id"] in (viewed_ids or set()),
-        # External providers can be previewed in their official embeddable players.
         preview_available=bool(item.get("video_id")) or (
             item.get("source") == "spotify" and "open.spotify.com/track/" in item.get("url", "")
         ),
@@ -63,7 +62,10 @@ def list_content(
 @router.post("/more-like-this", response_model=list[ContentItemOut])
 def get_more_like_this(payload: MoreLikeThisPayload, db: Store = Depends(get_db)):
     """Persist a small, type-scoped batch from the configured content sources."""
-    items = fetch_more_like_this(db, payload.content_type, payload.domain)
+    goal_titles = []
+    if payload.user_id:
+        goal_titles = [goal["title"] for goal in db.goals.filter(lambda goal: goal["user_id"] == payload.user_id and goal["status"] == "active")]
+    items = fetch_more_like_this(db, payload.content_type, payload.domain, goal_titles=goal_titles)
     return [_item_to_out(item) for item in items]
 
 

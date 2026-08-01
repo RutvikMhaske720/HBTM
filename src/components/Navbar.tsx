@@ -48,10 +48,10 @@ export default function Navbar() {
         </div>
 
         <Link
-          href="/onboarding"
+          href="/auth"
           className="rounded-full bg-(--color-accent-secondary) px-6 py-2.5 text-[15px] font-medium text-(--color-text-inverse) transition-transform hover:-translate-y-0.5 hover:brightness-110"
         >
-          Let&apos;s grow
+          Sign in
         </Link>
       </nav>
     </header>
