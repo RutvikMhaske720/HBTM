@@ -29,4 +29,4 @@ async def receive_event(payload: EventPayload, background_tasks: BackgroundTasks
 
 if __name__ == "__main__":
     print("Starting Browser Tracker Server on http://localhost:8000")
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("server:app", host="0.0.0.0", port=8001, reload=True)
