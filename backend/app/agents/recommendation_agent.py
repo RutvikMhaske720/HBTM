@@ -16,6 +16,13 @@ TOP_N = 20
 
 
 def _explain(item: dict, breakdown: dict, goal_domains: list[str]) -> str:
+    # compute_feedback_factor returns exactly 0.5 as a neutral cold-start
+    # prior when there's no feedback history for this domain — anything
+    # else means real signal, so a strong value is worth calling out
+    # explicitly (feedback should visibly shape future picks, not just
+    # silently nudge the score by its 10% weight).
+    if breakdown["feedback"] >= 0.7:
+        return f"You've responded well to {item['domain']} content before, so we're leaning into more of it."
     if item["domain"] in goal_domains and breakdown["goal_alignment"] >= breakdown["identity_match"]:
         return f"Recommended because it advances your goal in {item['domain']}."
     if breakdown["identity_match"] > 0.15:

@@ -3,7 +3,7 @@
  * Set NEXT_PUBLIC_API_URL in .env.local to point at the FastAPI server.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 async function req<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -185,6 +185,9 @@ export const api = {
   /** Full trace for a single run */
   getAgentRunTrace: (runId: string) =>
     req<AgentRun>(`/api/v1/agent/runs/${runId}/trace`),
+
+  /** SSE endpoint streaming step-by-step updates while a run is in progress */
+  agentStreamUrl: (runId: string) => `${BASE}/api/v1/agent/stream/${runId}`,
 
   /** User profile */
   getProfile: (userId: string) =>

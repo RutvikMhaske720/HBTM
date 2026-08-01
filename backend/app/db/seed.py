@@ -8,10 +8,11 @@ engine has a real (if small) corpus to score and rank against.
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy.orm import Session
-
-from app.db.models import ContentItem
+from app.db.database import Store
+from app.db.models import new_content_item
 from app.embeddings.embedder import get_embedder
+from app.embeddings.vector_store import get_vector_store
+from app.mcp_tools.semantic_search import CONTENT_COLLECTION
 
 CONTENT_LIBRARY = [
     # Creativity
@@ -61,31 +62,35 @@ CONTENT_LIBRARY = [
 ]
 
 
-def seed_content_library(db: Session) -> int:
-    existing = db.query(ContentItem).count()
-    if existing > 0:
+def seed_content_library(db: Store) -> int:
+    if db.content_items.count() > 0:
         return 0
 
     embedder = get_embedder()
     embedder.fit([f"{c['title']} {c['description']}" for c in CONTENT_LIBRARY])
+    vector_store = get_vector_store()
 
     now = datetime.now(timezone.utc)
     for i, item in enumerate(CONTENT_LIBRARY):
         embedding = embedder.embed_text(f"{item['title']} {item['description']}")
-        db.add(
-            ContentItem(
-                title=item["title"],
-                content_type=item["content_type"],
-                domain=item["domain"],
-                description=item["description"],
-                growth_potential_score=item["growth_potential_score"],
-                difficulty=item["difficulty"],
-                duration_minutes=item["duration_minutes"],
-                mood=item["mood"],
-                source="internal",
-                published_at=now - timedelta(days=i * 3),
-                embedding=embedding,
-            )
+        published_at = now - timedelta(days=i * 3)
+        record = new_content_item(
+            title=item["title"],
+            content_type=item["content_type"],
+            domain=item["domain"],
+            description=item["description"],
+            growth_potential_score=item["growth_potential_score"],
+            difficulty=item["difficulty"],
+            duration_minutes=item["duration_minutes"],
+            mood=item["mood"],
+            source="internal",
+            published_at=published_at.isoformat(),
+            embedding=embedding,
         )
-    db.commit()
+        db.content_items.upsert(record)
+        vector_store.upsert(
+            CONTENT_COLLECTION, record["id"], embedding,
+            {"domain": record["domain"], "content_type": record["content_type"]},
+        )
+
     return len(CONTENT_LIBRARY)

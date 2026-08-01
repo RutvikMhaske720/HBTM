@@ -50,6 +50,32 @@ export default function AgentLabPage() {
     }).finally(() => setLoading(false));
   }, [userId]);
 
+  // Live trace: while the selected run is still going, stream its steps in
+  // over SSE instead of waiting for a final one-shot fetch.
+  useEffect(() => {
+    if (!selectedRun || selectedRun.status !== "running") return;
+    const runId = selectedRun.id;
+    const source = new EventSource(api.agentStreamUrl(runId));
+
+    source.onmessage = (event) => {
+      const payload = JSON.parse(event.data);
+      if (payload.type === "run_complete") {
+        source.close();
+        if (userId) {
+          api.getAgentRuns(userId).then((r) => {
+            setRuns(r);
+            setSelectedRun((prev) => (prev && prev.id === runId ? r.find((x) => x.id === runId) ?? prev : prev));
+          });
+        }
+        return;
+      }
+      setSelectedRun((prev) => (prev && prev.id === runId ? { ...prev, steps: [...prev.steps, payload] } : prev));
+    };
+
+    source.onerror = () => source.close();
+    return () => source.close();
+  }, [selectedRun?.id, selectedRun?.status, userId]);
+
   const steps = selectedRun?.steps ?? [];
   const totalMs = steps.reduce((a, s) => a + s.duration_ms, 0);
   const successCount = steps.filter((s) => s.status === "success").length;

@@ -2,16 +2,13 @@
 
 import asyncio
 import json
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
 
 from app.agents import runner as agent_runner
 from app.api.schemas import AgentRunOut, AgentStatusOut, AgentStepOut, RunRequest, RunTriggerResponse
-from app.db.database import get_db
-from app.db.models import AgentRun
+from app.db.database import Store, get_db
 
 router = APIRouter(prefix="/api/v1/agent", tags=["agent"])
 
@@ -24,77 +21,76 @@ def trigger_agent_run(payload: RunRequest):
 
 
 @router.get("/status/{user_id}", response_model=AgentStatusOut)
-def get_agent_status(user_id: str, db: Session = Depends(get_db)):
+def get_agent_status(user_id: str, db: Store = Depends(get_db)):
     """Return status of the most recent agent run for a user."""
     run_id = agent_runner.get_latest_run_id(user_id)
     if not run_id:
-        # Check DB for historical runs
-        run = (
-            db.query(AgentRun)
-            .filter(AgentRun.user_id == user_id)
-            .order_by(AgentRun.started_at.desc())
-            .first()
+        # Check the store for historical runs
+        runs = sorted(
+            db.agent_runs.filter(lambda r: r["user_id"] == user_id),
+            key=lambda r: r["started_at"],
+            reverse=True,
         )
-        if not run:
+        if not runs:
             return AgentStatusOut(status="idle")
+        run = runs[0]
         return AgentStatusOut(
-            status=run.status,
-            run_id=run.id,
-            confidence_score=run.confidence_score,
-            last_run_at=run.finished_at or run.started_at,
+            status=run["status"],
+            run_id=run["id"],
+            confidence_score=run["confidence_score"],
+            last_run_at=run["finished_at"] or run["started_at"],
         )
 
     status = agent_runner.get_run_status(run_id)
-    run = db.get(AgentRun, run_id)
+    run = db.agent_runs.get(run_id)
     return AgentStatusOut(
         status=status,
         run_id=run_id,
-        confidence_score=run.confidence_score if run else None,
-        last_run_at=run.finished_at if run else None,
+        confidence_score=run["confidence_score"] if run else None,
+        last_run_at=run["finished_at"] if run else None,
     )
 
 
 @router.get("/runs/{user_id}", response_model=list[AgentRunOut])
-def list_agent_runs(user_id: str, limit: int = 20, db: Session = Depends(get_db)):
+def list_agent_runs(user_id: str, limit: int = 20, db: Store = Depends(get_db)):
     """List recent agent runs for the Agent Lab history panel."""
-    runs = (
-        db.query(AgentRun)
-        .filter(AgentRun.user_id == user_id)
-        .order_by(AgentRun.started_at.desc())
-        .limit(limit)
-        .all()
-    )
+    runs = sorted(
+        db.agent_runs.filter(lambda r: r["user_id"] == user_id),
+        key=lambda r: r["started_at"],
+        reverse=True,
+    )[:limit]
     results = []
     for run in runs:
-        steps = [
-            AgentStepOut(
-                agent_name=s.agent_name,
-                status=s.status,
-                duration_ms=s.duration_ms,
-                detail=s.detail,
-                created_at=s.created_at,
-            )
-            for s in run.steps
-        ]
+        steps = db.agent_step_logs.filter(lambda s: s["run_id"] == run["id"])
+        steps.sort(key=lambda s: s["created_at"])
         results.append(
             AgentRunOut(
-                id=run.id,
-                user_id=run.user_id,
-                trigger_type=run.trigger_type,
-                status=run.status,
-                confidence_score=run.confidence_score,
-                started_at=run.started_at,
-                finished_at=run.finished_at,
-                steps=steps,
+                id=run["id"],
+                user_id=run["user_id"],
+                trigger_type=run["trigger_type"],
+                status=run["status"],
+                confidence_score=run["confidence_score"],
+                started_at=run["started_at"],
+                finished_at=run["finished_at"],
+                steps=[
+                    AgentStepOut(
+                        agent_name=s["agent_name"],
+                        status=s["status"],
+                        duration_ms=s["duration_ms"],
+                        detail=s["detail"],
+                        created_at=s["created_at"],
+                    )
+                    for s in steps
+                ],
             )
         )
     return results
 
 
 @router.get("/runs/{run_id}/trace", response_model=AgentRunOut)
-def get_run_trace(run_id: str, db: Session = Depends(get_db)):
+def get_run_trace(run_id: str, db: Store = Depends(get_db)):
     """Full trace for a specific agent run (for Agent Lab trace viewer)."""
-    run = db.get(AgentRun, run_id)
+    run = db.agent_runs.get(run_id)
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
 
@@ -103,25 +99,27 @@ def get_run_trace(run_id: str, db: Session = Depends(get_db)):
     if cached_steps:
         steps = [AgentStepOut(**s) for s in cached_steps]
     else:
+        stored_steps = db.agent_step_logs.filter(lambda s: s["run_id"] == run_id)
+        stored_steps.sort(key=lambda s: s["created_at"])
         steps = [
             AgentStepOut(
-                agent_name=s.agent_name,
-                status=s.status,
-                duration_ms=s.duration_ms,
-                detail=s.detail,
-                created_at=s.created_at,
+                agent_name=s["agent_name"],
+                status=s["status"],
+                duration_ms=s["duration_ms"],
+                detail=s["detail"],
+                created_at=s["created_at"],
             )
-            for s in run.steps
+            for s in stored_steps
         ]
 
     return AgentRunOut(
-        id=run.id,
-        user_id=run.user_id,
-        trigger_type=run.trigger_type,
-        status=run.status,
-        confidence_score=run.confidence_score,
-        started_at=run.started_at,
-        finished_at=run.finished_at,
+        id=run["id"],
+        user_id=run["user_id"],
+        trigger_type=run["trigger_type"],
+        status=run["status"],
+        confidence_score=run["confidence_score"],
+        started_at=run["started_at"],
+        finished_at=run["finished_at"],
         steps=steps,
     )
 

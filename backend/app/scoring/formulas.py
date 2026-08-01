@@ -64,9 +64,8 @@ def compute_final_score(
             "goal_alignment": goal_alignment,
             "identity_match": identity_match,
             "growth_potential": growth_potential,
-            "recency_score": recency_score,
-            "feedback_factor": feedback_factor,
-            "safety_factor": safety_factor,
+            "recency": recency_score,
+            "feedback": feedback_factor,
         },
     }
 

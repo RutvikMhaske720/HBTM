@@ -1,42 +1,42 @@
 """MCP: Internal DB Server (spec section 8.2.3). Real implementation —
 this is IABTM's own data, so there's no external credential to mock. Each
-function takes a SQLAlchemy `Session` as its first argument (the spec's
-tool signatures assume an ambient connection; here it's passed explicitly
-for testability).
+function takes the local `Store` as its first argument (the spec's tool
+signatures assume an ambient connection; here it's passed explicitly for
+testability) — this is the seam to swap for a real Postgres/Mongo client
+later without touching any caller.
 """
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy.orm import Session
+from app.db.database import Store
+from app.db.models import new_agent_step_log, new_identity_node, new_interaction_event
 
-from app.db.models import AgentRun, AgentStepLog, ContentItem, Goal, IdentityNode, InteractionEvent, User
 
-
-def get_user_profile(db: Session, user_id: str) -> dict | None:
-    user = db.get(User, user_id)
+def get_user_profile(db: Store, user_id: str) -> dict | None:
+    user = db.users.get(user_id)
     if not user:
         return None
     return {
-        "id": user.id,
-        "name": user.name,
-        "profile_name": user.profile_name,
-        "email": user.email,
-        "phone": user.phone,
-        "photo_url": user.photo_url,
+        "id": user["id"],
+        "name": user["name"],
+        "profile_name": user["profile_name"],
+        "email": user["email"],
+        "phone": user["phone"],
+        "photo_url": user["photo_url"],
     }
 
 
-def get_identity_graph(db: Session, user_id: str) -> dict:
-    nodes = db.query(IdentityNode).filter(IdentityNode.user_id == user_id).all()
+def get_identity_graph(db: Store, user_id: str) -> dict:
+    nodes = db.identity_nodes.filter(lambda n: n["user_id"] == user_id)
     return {
         "nodes": [
             {
-                "id": n.id,
-                "type": n.node_type,
-                "label": n.label,
-                "weight": n.weight,
-                "source": n.source,
-                "polarity": n.polarity,
+                "id": n["id"],
+                "type": n["node_type"],
+                "label": n["label"],
+                "weight": n["weight"],
+                "source": n["source"],
+                "polarity": n["polarity"],
             }
             for n in nodes
         ],
@@ -46,9 +46,9 @@ def get_identity_graph(db: Session, user_id: str) -> dict:
     }
 
 
-def update_identity_graph(db: Session, user_id: str, patch: list[dict]) -> dict:
+def update_identity_graph(db: Store, user_id: str, patch: list[dict]) -> dict:
     for entry in patch:
-        node = IdentityNode(
+        node = new_identity_node(
             user_id=user_id,
             node_type=entry["node_type"],
             label=entry["label"],
@@ -56,73 +56,69 @@ def update_identity_graph(db: Session, user_id: str, patch: list[dict]) -> dict:
             source=entry.get("source", "self_declared"),
             polarity=entry.get("polarity", "current"),
         )
-        db.add(node)
-    db.commit()
+        db.identity_nodes.upsert(node)
     return get_identity_graph(db, user_id)
 
 
-def get_content_item(db: Session, content_id: str) -> dict | None:
-    item = db.get(ContentItem, content_id)
-    if not item:
-        return None
-    return _content_item_to_dict(item)
+def get_content_item(db: Store, content_id: str) -> dict | None:
+    item = db.content_items.get(content_id)
+    return _content_item_to_dict(item) if item else None
 
 
-def search_content_library(db: Session, filters: dict | None = None) -> list[dict]:
+def search_content_library(db: Store, filters: dict | None = None) -> list[dict]:
     filters = filters or {}
-    query = db.query(ContentItem)
-    if domain := filters.get("domain"):
-        query = query.filter(ContentItem.domain == domain)
-    if content_type := filters.get("content_type"):
-        query = query.filter(ContentItem.content_type == content_type)
-    exclude_ids = filters.get("exclude_ids") or []
-    items = [i for i in query.all() if i.id not in exclude_ids]
+    domain = filters.get("domain")
+    content_type = filters.get("content_type")
+    exclude_ids = set(filters.get("exclude_ids") or [])
+
+    def matches(item: dict) -> bool:
+        if domain and item["domain"] != domain:
+            return False
+        if content_type and item["content_type"] != content_type:
+            return False
+        if item["id"] in exclude_ids:
+            return False
+        return True
+
+    items = db.content_items.filter(matches)
     return [_content_item_to_dict(i) for i in items]
 
 
-def log_agent_run(db: Session, run_id: str, agent_name: str, status: str, duration_ms: int, detail: dict) -> None:
-    db.add(
-        AgentStepLog(
-            run_id=run_id,
-            agent_name=agent_name,
-            status=status,
-            duration_ms=duration_ms,
-            detail=detail,
-        )
-    )
-    db.commit()
+def log_agent_run(db: Store, run_id: str, agent_name: str, status: str, duration_ms: int, detail: dict) -> None:
+    step = new_agent_step_log(run_id=run_id, agent_name=agent_name, status=status, duration_ms=duration_ms, detail=detail)
+    db.agent_step_logs.upsert(step)
 
 
-def get_feedback_history(db: Session, user_id: str, time_range_days: int = 90) -> list[dict]:
+def get_feedback_history(db: Store, user_id: str, time_range_days: int = 90) -> list[dict]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=time_range_days)
-    events = (
-        db.query(InteractionEvent)
-        .filter(InteractionEvent.user_id == user_id, InteractionEvent.created_at >= cutoff)
-        .all()
-    )
+
+    def in_range(event: dict) -> bool:
+        return event["user_id"] == user_id and datetime.fromisoformat(event["created_at"]) >= cutoff
+
+    events = db.interaction_events.filter(in_range)
     return [
-        {"content_id": e.content_id, "interaction_type": e.interaction_type, "created_at": e.created_at.isoformat()}
+        {"content_id": e["content_id"], "interaction_type": e["interaction_type"], "created_at": e["created_at"]}
         for e in events
     ]
 
 
-def record_interaction(db: Session, user_id: str, content_id: str, interaction_type: str) -> None:
-    db.add(InteractionEvent(user_id=user_id, content_id=content_id, interaction_type=interaction_type))
-    db.commit()
+def record_interaction(db: Store, user_id: str, content_id: str, interaction_type: str) -> None:
+    event = new_interaction_event(user_id=user_id, content_id=content_id, interaction_type=interaction_type)
+    db.interaction_events.upsert(event)
 
 
-def _content_item_to_dict(item: ContentItem) -> dict:
+def _content_item_to_dict(item: dict) -> dict:
     return {
-        "id": item.id,
-        "title": item.title,
-        "content_type": item.content_type,
-        "domain": item.domain,
-        "description": item.description,
-        "growth_potential_score": item.growth_potential_score,
-        "difficulty": item.difficulty,
-        "duration_minutes": item.duration_minutes,
-        "mood": item.mood,
-        "source": item.source,
-        "published_at": item.published_at.isoformat(),
-        "embedding": item.embedding,
+        "id": item["id"],
+        "title": item["title"],
+        "content_type": item["content_type"],
+        "domain": item["domain"],
+        "description": item["description"],
+        "growth_potential_score": item["growth_potential_score"],
+        "difficulty": item["difficulty"],
+        "duration_minutes": item["duration_minutes"],
+        "mood": item["mood"],
+        "source": item["source"],
+        "published_at": item["published_at"],
+        "embedding": item["embedding"],
     }

@@ -1,10 +1,9 @@
 """MCP: Goal DB Server (spec section 8.2.6). Real implementation — first-party
-data, part of the same SQLite database as the Internal DB server.
+data, stored in the same local JSON store as the Internal DB server.
 """
 
-from sqlalchemy.orm import Session
-
-from app.db.models import Goal
+from app.db.database import Store
+from app.db.models import new_goal
 
 _DOMAIN_SUGGESTIONS = {
     "Career": "Build one visible portfolio piece",
@@ -18,32 +17,29 @@ _DOMAIN_SUGGESTIONS = {
 }
 
 
-def get_active_goals(db: Session, user_id: str) -> list[dict]:
-    goals = db.query(Goal).filter(Goal.user_id == user_id, Goal.status == "active").all()
+def get_active_goals(db: Store, user_id: str) -> list[dict]:
+    goals = db.goals.filter(lambda g: g["user_id"] == user_id and g["status"] == "active")
     return [_goal_to_dict(g) for g in goals]
 
 
-def create_goal(db: Session, user_id: str, domain: str, title: str = "", timeline: str = "Ongoing") -> dict:
-    goal = Goal(user_id=user_id, domain=domain, title=title or _DOMAIN_SUGGESTIONS.get(domain, domain), timeline=timeline)
-    db.add(goal)
-    db.commit()
-    db.refresh(goal)
+def create_goal(db: Store, user_id: str, domain: str, title: str = "", timeline: str = "Ongoing") -> dict:
+    goal = new_goal(user_id=user_id, domain=domain, title=title or _DOMAIN_SUGGESTIONS.get(domain, domain), timeline=timeline)
+    db.goals.upsert(goal)
     return _goal_to_dict(goal)
 
 
-def update_goal_progress(db: Session, user_id: str, goal_id: str, progress_delta: float) -> dict | None:
-    goal = db.get(Goal, goal_id)
-    if not goal or goal.user_id != user_id:
+def update_goal_progress(db: Store, user_id: str, goal_id: str, progress_delta: float) -> dict | None:
+    goal = db.goals.get(goal_id)
+    if not goal or goal["user_id"] != user_id:
         return None
-    goal.progress = max(0.0, min(1.0, goal.progress + progress_delta))
-    if goal.progress >= 1.0:
-        goal.status = "completed"
-    db.commit()
-    db.refresh(goal)
+    goal["progress"] = max(0.0, min(1.0, goal["progress"] + progress_delta))
+    if goal["progress"] >= 1.0:
+        goal["status"] = "completed"
+    db.goals.upsert(goal)
     return _goal_to_dict(goal)
 
 
-def complete_milestone(db: Session, user_id: str, goal_id: str, milestone_delta: float = 0.25) -> dict | None:
+def complete_milestone(db: Store, user_id: str, goal_id: str, milestone_delta: float = 0.25) -> dict | None:
     return update_goal_progress(db, user_id, goal_id, milestone_delta)
 
 
@@ -54,12 +50,12 @@ def suggest_goals(identity_summary: str) -> list[dict]:
     return [{"domain": d, "suggested_title": t} for d, t in _DOMAIN_SUGGESTIONS.items()]
 
 
-def _goal_to_dict(goal: Goal) -> dict:
+def _goal_to_dict(goal: dict) -> dict:
     return {
-        "id": goal.id,
-        "domain": goal.domain,
-        "title": goal.title,
-        "timeline": goal.timeline,
-        "progress": goal.progress,
-        "status": goal.status,
+        "id": goal["id"],
+        "domain": goal["domain"],
+        "title": goal["title"],
+        "timeline": goal["timeline"],
+        "progress": goal["progress"],
+        "status": goal["status"],
     }

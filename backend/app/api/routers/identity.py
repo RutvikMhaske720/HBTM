@@ -1,17 +1,16 @@
 """Identity router — graph and summary."""
 
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 
 from app.api.schemas import IdentityGraphOut, IdentityNodeOut
-from app.db.database import get_db
+from app.db.database import Store, get_db
 from app.mcp_tools import internal_db
 
 router = APIRouter(prefix="/api/v1/identity", tags=["identity"])
 
 
 @router.get("/{user_id}/graph", response_model=IdentityGraphOut)
-def get_identity_graph(user_id: str, db: Session = Depends(get_db)):
+def get_identity_graph(user_id: str, db: Store = Depends(get_db)):
     graph = internal_db.get_identity_graph(db, user_id)
     nodes = [
         IdentityNodeOut(
@@ -28,7 +27,7 @@ def get_identity_graph(user_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/{user_id}/summary")
-def get_identity_summary(user_id: str, db: Session = Depends(get_db)):
+def get_identity_summary(user_id: str, db: Store = Depends(get_db)):
     graph = internal_db.get_identity_graph(db, user_id)
     current = [n for n in graph["nodes"] if n["polarity"] == "current"]
     imagined = [n for n in graph["nodes"] if n["polarity"] == "imagined"]

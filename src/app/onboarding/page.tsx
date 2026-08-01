@@ -397,6 +397,7 @@ export default function OnboardingPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [revealed, setRevealed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [apiRecs, setApiRecs] = useState<typeof SAMPLE_RECS>([]);
   const router = useRouter();
   const setUserId = useIdentityStore((s) => s.setUserId);
@@ -432,7 +433,7 @@ export default function OnboardingPage() {
 
     // Last step — submit to backend
     setSubmitting(true);
-    setRevealed(true);
+    setSubmitError(null);
     try {
       const payload = {
         name: form.name,
@@ -452,6 +453,7 @@ export default function OnboardingPage() {
       setUserId(result.user_id);
       setProfile({ userId: result.user_id, name: result.name });
       setOnboardingComplete(true);
+      setRevealed(true);
 
       // Trigger agent run
       const runResult = await api.triggerAgentRun(result.user_id);
@@ -464,6 +466,9 @@ export default function OnboardingPage() {
       setApiRecs(recs as any);
     } catch (err) {
       console.error("Onboarding API error:", err);
+      setSubmitError(
+        "Couldn't reach the server. Make sure the backend is running, then try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -536,6 +541,12 @@ export default function OnboardingPage() {
           {step === 3 && <ProfileStep form={form} setForm={setForm} />}
           {step === 4 && <GoalsStep form={form} setForm={setForm} />}
         </div>
+
+        {submitError && (
+          <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-[13px] text-red-700">
+            {submitError}
+          </p>
+        )}
 
         <div className="mt-14 flex items-center gap-4">
           <button

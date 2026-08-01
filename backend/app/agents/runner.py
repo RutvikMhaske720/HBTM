@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from app.agents.graph import get_graph
 from app.agents.state import IABTMAgentState
 from app.db.database import SessionLocal
-from app.db.models import AgentRun
+from app.db.models import new_agent_run
 
 # In-memory cache: user_id -> latest recommendations list
 _recommendations_cache: dict[str, list[dict]] = {}
@@ -39,23 +39,14 @@ def get_latest_run_id(user_id: str) -> str | None:
 def run_agent_for_user(user_id: str, trigger_type: str = "user_request") -> str:
     """
     Synchronously run the full agent graph for the given user.
-    Persists AgentRun + steps to DB, caches recommendations.
+    Persists AgentRun + steps to the store, caches recommendations.
     Returns the run_id.
     """
     run_id = str(uuid.uuid4())
 
-    # Create AgentRun DB row
     with SessionLocal() as db:
-        agent_run = AgentRun(
-            id=run_id,
-            user_id=user_id,
-            trigger_type=trigger_type,
-            status="running",
-            confidence_score=0.0,
-            started_at=datetime.now(timezone.utc),
-        )
-        db.add(agent_run)
-        db.commit()
+        agent_run = new_agent_run(id=run_id, user_id=user_id, trigger_type=trigger_type, status="running")
+        db.agent_runs.upsert(agent_run)
 
     _run_status_cache[run_id] = "running"
     _user_latest_run[user_id] = run_id
@@ -85,14 +76,13 @@ def run_agent_for_user(user_id: str, trigger_type: str = "user_request") -> str:
         _run_step_cache[run_id] = step_log
         _run_status_cache[run_id] = "completed"
 
-        # Update AgentRun row
         with SessionLocal() as db:
-            run = db.get(AgentRun, run_id)
+            run = db.agent_runs.get(run_id)
             if run:
-                run.status = "completed"
-                run.confidence_score = confidence
-                run.finished_at = datetime.now(timezone.utc)
-                db.commit()
+                run["status"] = "completed"
+                run["confidence_score"] = confidence
+                run["finished_at"] = datetime.now(timezone.utc).isoformat()
+                db.agent_runs.upsert(run)
 
     except Exception as exc:  # noqa: BLE001
         _run_status_cache[run_id] = "failed"
@@ -103,11 +93,11 @@ def run_agent_for_user(user_id: str, trigger_type: str = "user_request") -> str:
             "detail": {"error": str(exc)},
         })
         with SessionLocal() as db:
-            run = db.get(AgentRun, run_id)
+            run = db.agent_runs.get(run_id)
             if run:
-                run.status = "failed"
-                run.finished_at = datetime.now(timezone.utc)
-                db.commit()
+                run["status"] = "failed"
+                run["finished_at"] = datetime.now(timezone.utc).isoformat()
+                db.agent_runs.upsert(run)
 
     return run_id
 
@@ -116,18 +106,10 @@ def run_agent_async(user_id: str, trigger_type: str = "user_request") -> str:
     """Start agent run in background thread. Returns run_id immediately."""
     run_id = str(uuid.uuid4())
 
-    # Create AgentRun DB row eagerly
+    # Create AgentRun row eagerly
     with SessionLocal() as db:
-        agent_run = AgentRun(
-            id=run_id,
-            user_id=user_id,
-            trigger_type=trigger_type,
-            status="running",
-            confidence_score=0.0,
-            started_at=datetime.now(timezone.utc),
-        )
-        db.add(agent_run)
-        db.commit()
+        agent_run = new_agent_run(id=run_id, user_id=user_id, trigger_type=trigger_type, status="running")
+        db.agent_runs.upsert(agent_run)
 
     _run_status_cache[run_id] = "running"
     _user_latest_run[user_id] = run_id
@@ -157,12 +139,12 @@ def run_agent_async(user_id: str, trigger_type: str = "user_request") -> str:
             _run_status_cache[run_id] = "completed"
 
             with SessionLocal() as db:
-                run = db.get(AgentRun, run_id)
+                run = db.agent_runs.get(run_id)
                 if run:
-                    run.status = "completed"
-                    run.confidence_score = confidence
-                    run.finished_at = datetime.now(timezone.utc)
-                    db.commit()
+                    run["status"] = "completed"
+                    run["confidence_score"] = confidence
+                    run["finished_at"] = datetime.now(timezone.utc).isoformat()
+                    db.agent_runs.upsert(run)
 
         except Exception as exc:  # noqa: BLE001
             _run_status_cache[run_id] = "failed"
@@ -173,11 +155,11 @@ def run_agent_async(user_id: str, trigger_type: str = "user_request") -> str:
                 "detail": {"error": str(exc)},
             })
             with SessionLocal() as db:
-                run = db.get(AgentRun, run_id)
+                run = db.agent_runs.get(run_id)
                 if run:
-                    run.status = "failed"
-                    run.finished_at = datetime.now(timezone.utc)
-                    db.commit()
+                    run["status"] = "failed"
+                    run["finished_at"] = datetime.now(timezone.utc).isoformat()
+                    db.agent_runs.upsert(run)
 
     thread = threading.Thread(target=_run, daemon=True)
     thread.start()

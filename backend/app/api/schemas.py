@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 class OnboardingPayload(BaseModel):
     current_self: list[str] = Field(default_factory=list)
     imagined_self: list[str] = Field(default_factory=list)
+    current_self_notes: str = ""
+    imagined_self_notes: str = ""
     learning_styles: list[str] = Field(default_factory=list)
     media_types: list[str] = Field(default_factory=list)
     name: str = ""
@@ -108,6 +110,15 @@ class GoalOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class GoalSuggestionOut(BaseModel):
+    domain: str
+    suggested_title: str
+
+
+class FeedbackCountOut(BaseModel):
+    count: int
 
 
 class ContentItemOut(BaseModel):
