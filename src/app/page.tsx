@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import HeroSequence from "@/components/HeroSequence";
+import TransformationScene from "@/components/TransformationScene";
 
 const STEPS = [
   {
@@ -22,7 +22,7 @@ export default function Home() {
     <>
       <Navbar />
       <main className="flex-1 bg-(--color-bg-primary)">
-        <HeroSequence>
+        <TransformationScene>
           <p className="mb-5 text-xs font-medium uppercase tracking-[0.3em] text-white/60">
             Your AI growth companion
           </p>
@@ -47,7 +47,7 @@ export default function Home() {
               I want to be better
             </Link>
           </div>
-        </HeroSequence>
+        </TransformationScene>
 
         <section
           id="how-it-works"

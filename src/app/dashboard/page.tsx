@@ -6,6 +6,7 @@ import { useIdentityStore } from "@/lib/store/identity.store";
 import { useRecommendationsStore } from "@/lib/store/recommendations.store";
 import { useAgentStore } from "@/lib/store/agent.store";
 import RecommendationFeed from "@/components/recommendations/RecommendationFeed";
+import AmbientBackdrop from "@/components/AmbientBackdrop";
 import type { Goal, Recommendation } from "@/lib/api";
 
 const DOMAIN_COLORS: Record<string, string> = {
@@ -62,19 +63,21 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl space-y-10">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-[13px] uppercase tracking-widest text-(--color-text-tertiary)">
+      <div className="relative flex items-start justify-between overflow-hidden rounded-3xl bg-(--color-ink) px-8 py-10">
+        <AmbientBackdrop />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent to-(--color-ink)/60" />
+        <div className="relative z-10">
+          <p className="text-[13px] uppercase tracking-widest text-white/50">
             AI-Curated Growth Feed
           </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-(--color-ink)">
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-(--color-text-inverse)">
             Your Dashboard
           </h1>
         </div>
         <button
           onClick={handleRefresh}
           disabled={refreshing || agentStatus === "running"}
-          className="rounded-full border border-(--color-border) px-5 py-2.5 text-[14px] font-medium text-(--color-ink) hover:bg-(--color-bg-offwhite) disabled:opacity-40 transition-colors"
+          className="relative z-10 rounded-full border border-white/25 px-5 py-2.5 text-[14px] font-medium text-white hover:bg-white/10 disabled:opacity-40 transition-colors"
         >
           {refreshing ? "Refreshing…" : "↺ Refresh"}
         </button>
