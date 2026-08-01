@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  /* Landing / onboarding surface palette — off-white, white, beige, black */
+  --color-bg-primary: #ffffff;
+  --color-bg-offwhite: #f7f5f0;
+  --color-bg-beige: #ede6d6;
+  --color-bg-beige-deep: #e2d8c2;
+  --color-surface: #ffffff;
+  --color-border: #e5e1d8;
+  --color-border-subtle: #efece4;
+
+  --color-ink: #0d0d0d;
+  --color-ink-soft: #2e2e2e;
+  --color-text-secondary: #4b4b4b;
+  --color-text-tertiary: #8a8a8a;
+  --color-text-inverse: #ffffff;
+
+  /* Wider system accents (dashboard / agent surfaces, Section 5.2) */
+  --color-accent-secondary: #5a4ff3;
+  --color-accent-tertiary: #00c9a7;
+  --color-accent-warm: #f4a261;
+  --color-accent-focus: #e84393;
+
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --background: var(--color-bg-primary);
+  --foreground: var(--color-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-satoshi);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-satoshi), Arial, Helvetica, sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

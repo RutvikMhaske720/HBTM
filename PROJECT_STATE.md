@@ -1,142 +1,89 @@
-# IamBetterThanMe — PROJECT STATE
+# IABTM — Project State
 
-> **Rule:** Read this at the start of every session. Update it at the end. Commit after update.
-> This file is the project's memory. If it's stale, something went wrong.
+Tracks what's actually built vs. what `implementation_plan.md` describes.
+The full plan (multi-agent LangGraph backend, MCP servers, Chrome
+extension, desktop tracker, payments, etc.) is a multi-month build. This
+session scoped down to the plan's own stated MVP: an interactive
+Next.js/TypeScript UI/UX prototype, starting with the two flows we had
+concrete visual references for.
 
----
+## Stack
 
-## Current Phase / Session
+Next.js 16 (App Router) + TypeScript + Tailwind v4 + Framer Motion.
+Single app, no monorepo (the earlier "Phase 0" monorepo scaffold —
+`design-system/`, `docs/component-inventory.md` — was superseded; those
+files are gone from the working tree but still in git history at
+`9c1c712` if anything needs to be recovered from them).
 
-**Phase 0 — Foundation | Session 1 COMPLETE**
-Next: **Phase 1 / Session 2 — App Shell & Navigation**
+Run it:
 
----
-
-## What Exists and Works
-
-### Repository Structure
-```
-/HBTM
-├── web/
-│   └── src/
-│       ├── components/    (empty — Session 2+)
-│       ├── pages/         (empty — Session 2+)
-│       ├── hooks/         (empty)
-│       ├── utils/         (empty)
-│       └── assets/        (empty)
-├── extension/
-│   └── src/               (empty — Session 7+)
-├── design-system/
-│   ├── tokens/
-│   │   ├── design-tokens.css   ✅ COMPLETE
-│   │   └── design-tokens.ts    ✅ COMPLETE
-│   └── components/             (empty — Session 2+)
-└── docs/
-    ├── component-inventory.md  ✅ COMPLETE
-    └── PROJECT_STATE.md        ✅ (this file)
+```bash
+npm install
+npm run dev   # http://localhost:3000
 ```
 
-### Assets
-- Hero brand visual generated: `hbtm_hero_banner` (particle silhouette woman, near-black bg)
-- Storyboard: 12-panel sequence (present self → future self → embrace → energy → goals) — audited and referenced in design decisions
+## Built this session
 
-### Design System (design-tokens.css + design-tokens.ts)
-- ✅ Satoshi font loaded via Fontshare CDN
-- ✅ Full type scale (Major Third ratio, 9 steps)
-- ✅ Color palette (surface stack, particle/energy colors, primary brand, accents, status)
-- ✅ 8pt spacing grid (space-1 through space-32)
-- ✅ Border radius scale
-- ✅ Shadow tokens including glow variants (for particle effects)
-- ✅ Motion/easing tokens including `--ease-particle-merge` (locked for Phase 5 Three.js)
-- ✅ Z-index scale (including z-particle layer)
-- ✅ Glassmorphism helpers
-- ✅ Gradient tokens
-- ✅ TypeScript mirror with Three.js `particleConfig` pre-seeded
+- **Landing page** (`src/app/page.tsx`, `src/components/HeroSequence.tsx`)
+  - Navbar with the real IABTM nav items and a **"Let's grow"** CTA in
+    place of Sign in (per your note — no auth for this synthetic-data
+    prototype phase).
+  - Scroll-driven hero: a 12-frame storyboard sequence that steps
+    forward as the user scrolls, paced in groups (2 fast transitions,
+    3 slow, repeating) via weighted breakpoints in
+    `HeroSequence.tsx`. Background opacity is knocked down + scrimmed
+    so "I am better than me" stays legible on top.
+  - **Placeholder frames**: the 12 storyboard images you shared aren't
+    saved as files anywhere I can read them from — I only see them
+    inline in chat. The 12 frames are currently rendered as abstract
+    dark/glow placeholders with the storyboard's own captions ("She is
+    her present self." → "She walks towards her better tomorrow.") so
+    the scroll mechanism is fully demonstrable. **To get the real
+    photos in**: export/save that sprite sheet as 12 image files (or
+    one file per frame) into `public/hero/`, then swap the `<StoryFrame>`
+    render in `HeroSequence.tsx` for an `<img>` tag — the pacing logic
+    doesn't change.
+  - Satoshi font isn't available in this sandbox either — `layout.tsx`
+    aliases the `--font-satoshi` variable to Geist as a stand-in. Drop
+    the real `Satoshi-Variable.woff2` into `public/fonts/` and swap the
+    `next/font/google` call for a `next/font/local` one to match spec
+    section 5.1 exactly.
+- **Onboarding flow** (`src/app/onboarding/page.tsx`), 5 steps, no
+  auth/password gate:
+  1. Current self / imagined self attribute picker ("Me" / "I Am")
+  2. Learning style
+  3. Media preferences
+  4. Profile info — name, profile name, email, phone, photo. **Password
+     field removed** (this was the "signin" piece — dropped per your
+     instruction since this is for synthetic test data, not real
+     accounts).
+  5. Goals + timeline (from the plan's spec — the real product screens
+     you shared didn't include this step, but the recommendation engine
+     needs it, so it's here to close the loop)
+  - Ends in a simulated "AI Curator is analyzing your profile…"
+    thinking animation, then 5 growth-scored recommendation cards with
+    "why this?" copy — satisfies MVP goals #2/#3 from the plan without
+    a real backend (all data is static/local state).
 
----
+Verified in a headless browser this session: both pages render with
+zero console/page errors, the scroll animation visibly steps through
+frames, and the full 5-step onboarding flow (fill → continue → reveal)
+completes end to end.
 
-## What's Stubbed (Fake Data, No Real Logic)
+## Explicitly not attempted this session
 
-**Everything.** Session 1 is scaffold-only. No UI components, no routes, no agent logic.
+Everything backend/infra from the plan — LangGraph agents, MCP servers,
+Identity Graph persistence, Chrome extension, desktop tracker, real
+auth, payments, Shopify — is spec-only in `implementation_plan.md`.
+The dashboard, Agent Lab log viewer, Path View, and Identity Graph
+visualization (plan sections 4.2.3–4.2.7) also aren't built yet — the
+onboarding reveal screen's "Enter your dashboard" button currently just
+links back to `/`.
 
----
+## Suggested next steps
 
-## Design Decisions Locked In (Don't Revisit Without Reason)
-
-| # | Decision | Why locked |
-|---|----------|------------|
-| 1 | **Satoshi** typeface (Fontshare CDN) | Brand identity, storyboard aesthetic match |
-| 2 | Color anchor **hsl(250°)** — indigo/lavender | Matches particle light color in storyboard panels 5-8 |
-| 3 | `--ease-particle-merge: cubic-bezier(0.08, 0.82, 0.17, 1.0)` | Phase 5 Three.js must use this exact curve. Change = re-do keyframes |
-| 4 | **Manifest V3** for Chrome extension | V2 deprecated by Chrome |
-| 5 | Extension storage: **IndexedDB** (not localStorage) | Quota, structured queries needed for agent event shape |
-| 6 | Particle counts: high=12000, mid=6000, low=2000 | Pre-seeded for Phase 5 perf budget. Validate in Session 15 |
-| 7 | **No Three.js before Session 11** | Prevents scope-creep; 2D CSS placeholder in Session 2 |
-| 8 | All screens built from scratch | No existing codebase to port |
-| 9 | Two 3D moments only: agent-thinking loop + onboarding ritual | All other 3D deferred to post-Phase 5 |
-| 10 | TypeScript token mirror kept in sync with CSS vars | CSS is canonical; TS derived |
-
----
-
-## Screen Inventory (status snapshot)
-
-23 screens identified (see `docs/component-inventory.md` for full table).
-All status: 🔲 Not built.
-
-**Build order:**
-- Session 2: App shell, nav, dashboard empty state, AgentThinkingIndicator (2D)
-- Session 3: Onboarding flow (5 screens)
-- Session 4: Dashboard populated (4 metrics wired to mock data)
-- Session 5: Content/social/payment/podcast/shop screens
-- Session 6: Agent logs dashboard
-- Session 7-9: Chrome extension
-- Session 10: Integration pass
-- Session 11-15: 3D layer
-- Session 16: Privacy UI
-
----
-
-## Next Session: Start Here (Session 2)
-
-**Goal:** App shell + navigation + dashboard empty state + 2D AgentThinkingIndicator
-
-**First steps:**
-1. Read this file ✓ (you're doing it)
-2. Init web app — use Vite + React + TypeScript: `npx -y create-vite@latest ./web -- --template react-ts`
-3. Install dependencies: `react-router-dom`, `framer-motion` (for 2D animations — NOT Three.js)
-4. Import `design-tokens.css` as global stylesheet first, before any component CSS
-5. Build in this order: `AppShell` → `Sidebar` → `TopBar` → `NavItem` → basic `Button`/`GlassCard` → Dashboard shell
-6. `AgentThinkingIndicator`: CSS keyframe pulse + rotating particles, no canvas API, no Three.js
-
-**Things to NOT do in Session 2:**
-- No Three.js, no canvas API (that's Session 11+)
-- No real API calls or agent logic
-- No onboarding screens (that's Session 3)
-- No extension code
-
-**Handoff test for Session 2:**
-- Can click through nav items and see route change
-- Dashboard shows empty state with correct layout grid
-- AgentThinkingIndicator animates on demand
-- Responsive: works at 1440px, 1024px, 768px, 375px
-
----
-
-## Agent Wiring Seams (don't close these off)
-
-These are the places where real backend will attach. Keep them as clean interfaces:
-
-| Seam | Location | Agent consumer |
-|------|----------|----------------|
-| `AgentThinkingIndicator` state prop | Dashboard | LangGraph orchestrator status |
-| Dashboard metrics props | MetricCard components | Real metric queries |
-| Agent logs data shape | Session 6 LogEntry component | MCP tool-call logs |
-| Extension event shape | IndexedDB schema | LangGraph input pipeline |
-| Recommendation card data | ContentGrid | Agent recommendation output |
-
----
-
-## Git Log
-```
-[Session 1] Phase 0 foundation — design tokens, component inventory, PROJECT_STATE
-```
+1. Drop in the real hero photography and Satoshi font (see above).
+2. Build the Dashboard shell (4.2.3) as static/local-state, same
+   pattern as onboarding — no backend needed for a UI prototype.
+3. Only after the UI prototype is validated: start the LangGraph
+   orchestrator + one MCP server (Internal DB) as a real backend slice.
