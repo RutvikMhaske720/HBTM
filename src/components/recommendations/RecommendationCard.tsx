@@ -17,7 +17,7 @@ const DOMAIN_COLORS: Record<string, string> = {
 };
 
 const CONTENT_TYPE_EMOJI: Record<string, string> = {
-  Film: "🎬",
+  Videos: "🎬",
   Music: "🎵",
   Art: "🎨",
   Animation: "✨",
@@ -61,11 +61,18 @@ export default function RecommendationCard({ rec, onFeedback }: Props) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Top color band */}
-      <div
-        className="h-2 w-full rounded-t-2xl"
-        style={{ background: domainColor }}
-      />
+      {/* Preview — every curated item has one, so this is the card's anchor */}
+      {rec.thumbnail_url ? (
+        <div className="relative h-32 w-full overflow-hidden rounded-t-2xl" style={{ background: domainColor }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={rec.thumbnail_url} alt="" className="h-full w-full object-cover" loading="lazy" />
+          {rec.video_id && (
+            <span className="absolute inset-0 flex items-center justify-center text-3xl text-white drop-shadow-lg">▶</span>
+          )}
+        </div>
+      ) : (
+        <div className="h-2 w-full rounded-t-2xl" style={{ background: domainColor }} />
+      )}
 
       <div className="flex flex-1 flex-col p-4">
         {/* Badges row */}
@@ -102,13 +109,25 @@ export default function RecommendationCard({ rec, onFeedback }: Props) {
           </span>
         </div>
 
-        {/* Why recommended */}
-        <button
-          onClick={() => setShowWhy((v) => !v)}
-          className="mt-3 text-left text-[11px] text-(--color-accent-secondary) hover:underline"
-        >
-          ✦ {showWhy ? "Hide reason" : "Why this?"}
-        </button>
+        {/* Why recommended, and the source itself */}
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <button
+            onClick={() => setShowWhy((v) => !v)}
+            className="text-left text-[11px] text-(--color-accent-secondary) hover:underline"
+          >
+            ✦ {showWhy ? "Hide reason" : "Why this?"}
+          </button>
+          {rec.url && (
+            <a
+              href={rec.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[11px] font-medium text-(--color-text-secondary) hover:text-(--color-ink) hover:underline"
+            >
+              Open ↗
+            </a>
+          )}
+        </div>
 
         {showWhy && (
           <p className="mt-1.5 rounded-lg bg-(--color-bg-offwhite) p-2.5 text-[12px] leading-relaxed text-(--color-text-secondary)">

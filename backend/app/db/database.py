@@ -207,11 +207,22 @@ def _sqlite_path(database_url: str) -> Path:
     return Path(raw_path) if raw_path.startswith("/") else Path(raw_path).resolve()
 
 
-def _create_store(database_url: str) -> Store:
+def _create_store(database_url: str, fallback_to_sqlite: bool = True) -> Store:
     if database_url.startswith("sqlite:///"):
         return SQLiteStore(_sqlite_path(database_url))
     if database_url.startswith(("postgresql://", "postgres://")):
-        return PostgresStore(database_url)
+        try:
+            return PostgresStore(database_url)
+        except Exception as exc:
+            if not fallback_to_sqlite:
+                raise
+            fallback_url = "sqlite:///./data/iabtm.db"
+            print(
+                "[IABTM] PostgreSQL is unavailable; using local SQLite instead. "
+                "Set DATABASE_FALLBACK_TO_SQLITE=false to require PostgreSQL. "
+                f"({type(exc).__name__})"
+            )
+            return SQLiteStore(_sqlite_path(fallback_url))
     raise ValueError("DATABASE_URL must use sqlite:/// or postgresql://")
 
 
@@ -235,7 +246,20 @@ def _normalize_supabase_database_url(database_url: str, supabase_url: str) -> st
 
 
 settings = get_settings()
-_store = _create_store(_normalize_supabase_database_url(settings.database_url, settings.supabase_url))
+_store = _create_store(
+    _normalize_supabase_database_url(settings.database_url, settings.supabase_url),
+    settings.database_fallback_to_sqlite,
+)
+
+
+def active_database_url() -> str:
+    """The URL actually in use, which is not `settings.database_url` when the
+    configured PostgreSQL host was unreachable and we fell back to SQLite.
+
+    The vector store reads this so records and embeddings can never end up
+    split across two different backends.
+    """
+    return _store.database_url if isinstance(_store, PostgresStore) else f"sqlite:///{_store.database_path}"
 
 
 def SessionLocal() -> Store:

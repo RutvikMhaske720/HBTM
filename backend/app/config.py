@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     data_dir: str = "./data"
     database_url: str = "sqlite:///./data/iabtm.db"
+    database_fallback_to_sqlite: bool = True
     supabase_url: str = ""
     supabase_database_url: str = ""
     supabase_secret_key: str = ""
@@ -20,18 +21,27 @@ class Settings(BaseSettings):
     spotify_client_id: str = ""
     spotify_client_secret: str = ""
     spotify_market: str = "IN"
-    reddit_client_id: str = ""
-    reddit_client_secret: str = ""
-    reddit_user_agent: str = "iabtm-curator/0.1"
     web_search_provider: str = ""
     web_search_api_key: str = ""
     openai_api_key: str = ""
 
+    # --- Curation policy ---------------------------------------------------
+    # Nothing reaches a user unless it clears all four gates below: it must be
+    # recent, semantically close to the profile, not a near-duplicate of
+    # something already curated, and backed by a link + preview that resolve.
+    curation_max_age_days: int = 540
+    curation_relevance_threshold: float = 0.15
+    curation_duplicate_threshold: float = 0.78
+    curation_http_timeout: float = 10.0
+    curation_max_workers: int = 8
+    curation_verify_links: bool = True
+    curation_target_per_type: int = 12
+
     frontend_origin: str = "http://localhost:3000"
 
     @property
-    def youtube_mocked(self) -> bool:
-        return not self.youtube_api_key
+    def youtube_configured(self) -> bool:
+        return bool(self.youtube_api_key)
 
     @property
     def pinterest_configured(self) -> bool:
@@ -45,12 +55,9 @@ class Settings(BaseSettings):
 
 
     @property
-    def reddit_mocked(self) -> bool:
-        return not (self.reddit_client_id and self.reddit_client_secret)
-
-    @property
-    def web_search_mocked(self) -> bool:
-        return not self.web_search_api_key
+    def web_search_configured(self) -> bool:
+        """A paid search API is optional — keyless scraping covers the same ground."""
+        return bool(self.web_search_api_key and self.web_search_provider)
 
     @property
     def embeddings_mocked(self) -> bool:

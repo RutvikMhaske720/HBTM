@@ -37,6 +37,22 @@ class MoreLikeThisPayload(BaseModel):
     user_id: str | None = None
 
 
+class CurationReport(BaseModel):
+    """Why a curation run produced what it did — surfaced so an empty result
+    reads as 'nothing cleared the relevance bar', not as a silent failure."""
+
+    content_type: str = ""
+    domain: str = ""
+    kept: int = 0
+    fetched: int = 0
+    rejected: dict[str, int] = Field(default_factory=dict)
+
+
+class CurationResult(BaseModel):
+    items: list["ContentItemOut"] = Field(default_factory=list)
+    report: CurationReport = Field(default_factory=CurationReport)
+
+
 class RunRequest(BaseModel):
     user_id: str
     trigger_type: str = "user_request"
@@ -100,6 +116,10 @@ class RecommendationOut(BaseModel):
     mood: str
     source: str
     url: str
+    thumbnail_url: str = ""
+    video_id: str = ""
+    published_at: datetime | None = None
+    preview_available: bool = False
     why_recommended: str
     score: float
     score_breakdown: ScoreBreakdown | None = None

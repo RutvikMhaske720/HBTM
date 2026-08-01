@@ -15,7 +15,7 @@ export const LANDING_DOMAINS: LandingDomain[] = [
     icon: "🎨",
     blurb: "Ideas made tangible — visual art, music, and making.",
     sample: "A 12-minute short on kinetic sculpture, picked to unstick your current project.",
-    duration: "12 min · Film",
+    duration: "12 min · Videos",
   },
   {
     name: "Mindset",
@@ -55,7 +55,7 @@ export const LANDING_DOMAINS: LandingDomain[] = [
     icon: "🤝",
     blurb: "The people you're becoming this for.",
     sample: "A 10-minute film on repairing after conflict, without over-apologizing.",
-    duration: "10 min · Film",
+    duration: "10 min · Videos",
   },
   {
     name: "Finance",

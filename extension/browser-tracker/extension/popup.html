@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Browser Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="icons/48.png" alt="Icon" width="24" height="24" id="logo" style="display:none;">
+            <h2>Tracker Status</h2>
+        </div>
+        
+        <div class="status-box">
+            <div class="status-indicator" id="indicator"></div>
+            <span id="status-text">Active</span>
+        </div>
+        
+        <div class="controls">
+            <button id="toggle-btn" class="btn active-btn">Stop Tracking</button>
+        </div>
+        
+        <div class="footer">
+            <p>Server: <span id="server-status">Checking...</span></p>
+        </div>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

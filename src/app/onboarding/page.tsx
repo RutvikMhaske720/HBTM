@@ -370,7 +370,7 @@ const SAMPLE_RECS = [
   { title: "The Creative Habit", type: "Book", domain: "Creativity", color: "#C97A3D", why: "Builds on your goal to work on Creativity" },
   { title: "Deep Work — Cal Newport (talk)", type: "Podcast", domain: "Mindset", color: "#6E5AA0", why: "Matches your imagined-self trait: Focused" },
   { title: "Atomic Habits, Ch. 1–3", type: "Article", domain: "Health", color: "#5E8F5A", why: "Addresses your current-self trait: Time Management" },
-  { title: "A Short Film About Discipline", type: "Film", domain: "Purpose", color: "#2F6F6B", why: "Aligned with your 6 month timeline" },
+  { title: "A Short Film About Discipline", type: "Videos", domain: "Purpose", color: "#2F6F6B", why: "Aligned with your 6 month timeline" },
   { title: "Studio Ghibli Art Retrospective", type: "Art", domain: "Creativity", color: "#C97A3D", why: "Selected for your Verbal learning style" },
 ];
 

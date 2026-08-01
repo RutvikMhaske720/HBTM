@@ -118,6 +118,9 @@ def record_interaction(db: Store, user_id: str, content_id: str, interaction_typ
 
 
 def _content_item_to_dict(item: dict) -> dict:
+    # url / thumbnail_url / video_id travel with the item everywhere: the
+    # ranking agents drop anything that can't be opened or previewed, so they
+    # have to be able to see those fields.
     return {
         "id": item["id"],
         "title": item["title"],
@@ -129,6 +132,9 @@ def _content_item_to_dict(item: dict) -> dict:
         "duration_minutes": item["duration_minutes"],
         "mood": item["mood"],
         "source": item["source"],
+        "url": item.get("url", ""),
+        "thumbnail_url": item.get("thumbnail_url", ""),
+        "video_id": item.get("video_id", ""),
         "published_at": item["published_at"],
-        "embedding": item["embedding"],
+        "embedding": item.get("embedding", []),
     }

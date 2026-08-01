@@ -1,68 +1,101 @@
 """Content Retrieval Agent (spec section 6.2.6).
 
-Pulls candidates from the internal library plus the (mocked) external
-MCP sources, normalizing everything into one shape so the Recommendation
-Agent can score internal and external items identically.
+Builds the candidate pool the Recommendation Agent ranks. Retrieval is
+vector-first: the profile vector is the query, and the vector database
+returns its nearest neighbours with the domain / preview filters already
+applied inside the index scan. That replaces the previous approach of
+loading the whole library and filtering it in Python — it scales, and more
+importantly it retrieves by *meaning* rather than by exact domain match, so a
+finance-flavoured mindset piece can still surface for a mindset goal.
+
+When the index can't supply enough distinct, previewable candidates, the
+agent curates live from the external sources instead of padding the pool with
+weaker material.
 """
 
-import hashlib
-from datetime import datetime, timezone
-
 from app.agents.state import IABTMAgentState
+from app.config import get_settings
+from app.curation import pipeline
+from app.curation.profile import build_profile
 from app.db.database import SessionLocal
-from app.mcp_tools import internal_db, reddit, semantic_search, youtube
+from app.embeddings.index import CONTENT_COLLECTION, content_text
+from app.mcp_tools import semantic_search
 
 MAX_CANDIDATES = 60
-
-
-def _external_to_candidate(title: str, description: str, domain: str, content_type: str, source: str, duration_minutes: int) -> dict:
-    content_id = f"ext-{hashlib.sha1(f'{source}-{title}'.encode()).hexdigest()[:12]}"
-    return {
-        "id": content_id,
-        "title": title,
-        "content_type": content_type,
-        "domain": domain,
-        "description": description,
-        "growth_potential_score": 0.6,  # unvetted external content — moderate default, Safety Agent still checks it
-        "difficulty": "accessible",
-        "duration_minutes": duration_minutes,
-        "mood": "curious",
-        "source": source,
-        "published_at": datetime.now(timezone.utc).isoformat(),
-        "embedding": semantic_search.embed_text(f"{title} {description}"),
-    }
+MIN_CANDIDATES = 18
+# Media the live top-up will try, in the order it tries them.
+TOPUP_TYPES = ["Videos", "Editorial", "Music"]
 
 
 def run(state: IABTMAgentState) -> tuple[dict, dict]:
-    goals = state.get("active_goals", [])
-    seen_ids = {f["content_id"] for f in state.get("feedback_history", [])}
-    domains = [g["domain"] for g in goals] or ["Mindset", "Creativity", "Health"]
-
-    candidates: dict[str, dict] = {}
+    settings = get_settings()
+    user_id = state["user_id"]
+    seen_ids = {event["content_id"] for event in state.get("feedback_history", [])}
 
     with SessionLocal() as db:
-        for domain in domains:
-            for item in internal_db.search_content_library(db, {"domain": domain, "exclude_ids": list(seen_ids)}):
-                candidates[item["id"]] = item
+        profile = build_profile(db, user_id)
+        # The graph's identity summary is richer than the one rebuilt here, so
+        # prefer it and re-derive the query vector from it when present.
+        identity_summary = state.get("identity_summary") or profile.identity_summary
+        goals = state.get("active_goals", []) or profile.goals
+        query_vector = semantic_search.build_user_query_vector(
+            identity_summary,
+            [f"{goal['domain']} {goal['title']}" for goal in goals] or ["personal growth"],
+            db=db, feedback_history=state.get("feedback_history", []),
+        ) or profile.vector
 
-        if len(candidates) < 20:
-            for item in internal_db.search_content_library(db, {"exclude_ids": list(seen_ids)}):
-                candidates.setdefault(item["id"], item)
+        candidates: dict[str, dict] = {}
 
-    sources_used = {"internal": len(candidates)}
+        # Pass 1 — nearest neighbours across the whole library, previewable only.
+        for hit in semantic_search.similarity_search(
+            db, query_vector, collection=CONTENT_COLLECTION, top_k=MAX_CANDIDATES * 2,
+            filters={"has_preview": True},
+        ):
+            if hit["id"] not in seen_ids:
+                candidates[hit["id"]] = hit
 
-    for domain in domains[:3]:
-        for video in youtube.search_youtube_videos(query=domain, category=domain, max_results=2):
-            cand = _external_to_candidate(video["title"], video["description"], domain, "Film", "youtube", video["duration_seconds"] // 60)
-            candidates[cand["id"]] = cand
-        for post in reddit.get_top_posts(f"r/{domain}", limit=1):
-            cand = _external_to_candidate(post["title"], f"Community discussion in {post['subreddit']}", domain, "Editorial", "reddit", 5)
-            candidates[cand["id"]] = cand
+        # Pass 2 — guarantee each goal domain is represented, so a single
+        # dominant domain can't crowd the others out of the pool.
+        for domain in profile.domains[:4]:
+            for hit in semantic_search.similarity_search(
+                db, query_vector, collection=CONTENT_COLLECTION, top_k=8,
+                filters={"domain": domain, "has_preview": True},
+            ):
+                if hit["id"] not in seen_ids:
+                    candidates.setdefault(hit["id"], hit)
 
-    sources_used["youtube"] = sum(1 for c in candidates.values() if c["source"] == "youtube")
-    sources_used["reddit"] = sum(1 for c in candidates.values() if c["source"] == "reddit")
+        sources_used = {"vector_index": len(candidates)}
+        topup_reports = []
 
-    pool = list(candidates.values())[:MAX_CANDIDATES]
+        # Pass 3 — the index is thin for this user; go get real material.
+        if len(candidates) < MIN_CANDIDATES:
+            for content_type in TOPUP_TYPES:
+                for domain in profile.domains[:2]:
+                    items, report = pipeline.curate(
+                        db, profile, content_type, domain, limit=6
+                    )
+                    topup_reports.append(report)
+                    for item in items:
+                        if item["id"] not in seen_ids:
+                            candidates.setdefault(item["id"], dict(item))
+                if len(candidates) >= MIN_CANDIDATES:
+                    break
+            sources_used["live_curation"] = len(candidates) - sources_used["vector_index"]
+
+    pool = []
+    for item in list(candidates.values())[:MAX_CANDIDATES]:
+        # The scorer needs an embedding on every candidate; live-curated items
+        # were just indexed, so this only fills gaps from legacy records.
+        if not item.get("embedding"):
+            item["embedding"] = semantic_search.embed_text(content_text(item))
+        pool.append(item)
+
     updates = {"candidate_pool": pool}
-    detail = {"candidate_count": len(pool), "sources": sources_used, "domains_queried": domains}
+    detail = {
+        "candidate_count": len(pool),
+        "sources": sources_used,
+        "domains_queried": profile.domains,
+        "relevance_threshold": settings.curation_relevance_threshold,
+        "live_topups": topup_reports,
+    }
     return updates, detail

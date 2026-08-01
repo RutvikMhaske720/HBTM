@@ -67,6 +67,10 @@ export interface Recommendation {
   mood: string;
   source: string;
   url: string;
+  thumbnail_url: string;
+  video_id: string;
+  published_at: string | null;
+  preview_available: boolean;
   why_recommended: string;
   score: number;
   score_breakdown: ScoreBreakdown | null;
@@ -100,6 +104,20 @@ export interface ContentItem {
   published_at: string;
   viewed: boolean;
   preview_available: boolean;
+}
+
+/** Why a curation run produced what it did, so an empty shelf is explainable. */
+export interface CurationReport {
+  content_type: string;
+  domain: string;
+  kept: number;
+  fetched: number;
+  rejected: Record<string, number>;
+}
+
+export interface CurationResult {
+  items: ContentItem[];
+  report: CurationReport;
 }
 
 export interface IdentityNode {
@@ -239,18 +257,20 @@ export const api = {
     ),
 
   /** Content library */
-  getContent: (params?: { domain?: string; content_type?: string; difficulty?: string; user_id?: string; limit?: number }) => {
+  getContent: (params?: { domain?: string; content_type?: string; difficulty?: string; user_id?: string; limit?: number; q?: string; curate?: boolean }) => {
     const qs = new URLSearchParams();
     if (params?.domain) qs.set("domain", params.domain);
     if (params?.content_type) qs.set("content_type", params.content_type);
     if (params?.difficulty) qs.set("difficulty", params.difficulty);
     if (params?.user_id) qs.set("user_id", params.user_id);
     if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.q) qs.set("q", params.q);
+    if (params?.curate === false) qs.set("curate", "false");
     return req<ContentItem[]>(`/api/v1/content?${qs}`);
   },
 
   getMoreLikeThis: (contentType: string, domain?: string, userId?: string) =>
-    req<ContentItem[]>("/api/v1/content/more-like-this", {
+    req<CurationResult>("/api/v1/content/more-like-this", {
       method: "POST",
       body: JSON.stringify({ content_type: contentType, domain, user_id: userId }),
     }),

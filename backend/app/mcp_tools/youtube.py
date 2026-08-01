@@ -1,67 +1,124 @@
-"""YouTube Data API integration with a deterministic offline fallback."""
+"""MCP: YouTube Data API integration (spec section 8.2.1).
 
-import hashlib
+Every result this module returns is a real, embeddable, currently-available
+video with a real thumbnail. Anything that fails those checks is dropped here
+rather than being passed downstream to be filtered later — a video that can't
+be embedded has no preview, and an unavailable one is a broken link.
+"""
+
+import re
 from datetime import datetime, timedelta, timezone
 
-from app.config import get_settings
 import httpx
 
-_MOCK_CHANNELS = ["Better Every Day", "The Growth Lab", "Slow Living Studio", "Focused Mind Media"]
+from app.config import get_settings
+
+SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
+VIDEOS_URL = "https://www.googleapis.com/youtube/v3/videos"
+
+# YouTube's own topic buckets. Constraining the search to one keeps a "Music"
+# request from returning a lecture *about* music, and an "Animation" request
+# from returning live-action.
+CATEGORY_MUSIC = "10"
+CATEGORY_FILM_ANIMATION = "1"
+CATEGORY_EDUCATION = "27"
+
+_DURATION_PATTERN = re.compile(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?")
 
 
-def _seeded_int(seed: str, low: int, high: int) -> int:
-    h = int(hashlib.sha256(seed.encode()).hexdigest(), 16)
-    return low + (h % (high - low + 1))
+def search_youtube_videos(
+    query: str,
+    category: str | None = None,
+    max_results: int = 5,
+    safe_search: bool = True,
+    published_within_days: int | None = None,
+    video_category_id: str | None = None,
+    order: str = "relevance",
+) -> list[dict]:
+    """Search YouTube and return only playable, previewable videos.
 
-
-def search_youtube_videos(query: str, category: str | None = None, max_results: int = 5, safe_search: bool = True) -> list[dict]:
+    `order="date"` gives the newest matches but sacrifices relevance, so
+    callers that care about both pass `order="relevance"` together with
+    `published_within_days` — that way the recency constraint is applied by
+    the API as a filter, and ranking stays relevance-driven.
+    """
     settings = get_settings()
-    if not settings.youtube_mocked:
-        params = {
-            "part": "snippet", "q": query, "type": "video", "maxResults": max_results,
-            "safeSearch": "strict" if safe_search else "none", "videoEmbeddable": "true",
-            "key": settings.youtube_api_key,
-        }
-        with httpx.Client(timeout=15) as client:
-            response = client.get("https://www.googleapis.com/youtube/v3/search", params=params)
+    if not settings.youtube_configured:
+        return []
+
+    params = {
+        "part": "snippet",
+        "q": query,
+        "type": "video",
+        "maxResults": min(max(max_results, 1), 50),
+        "order": order,
+        "safeSearch": "strict" if safe_search else "none",
+        "videoEmbeddable": "true",
+        "relevanceLanguage": "en",
+        "key": settings.youtube_api_key,
+    }
+    if video_category_id:
+        params["videoCategoryId"] = video_category_id
+    if published_within_days:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=published_within_days)
+        params["publishedAfter"] = cutoff.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    try:
+        with httpx.Client(timeout=settings.curation_http_timeout + 5) as client:
+            response = client.get(SEARCH_URL, params=params)
             response.raise_for_status()
-            search_items = response.json().get("items", [])
-            ids = [item.get("id", {}).get("videoId") for item in search_items]
+            ids = [
+                item.get("id", {}).get("videoId")
+                for item in response.json().get("items", [])
+            ]
             ids = [video_id for video_id in ids if video_id]
             if not ids:
                 return []
             details = client.get(
-                "https://www.googleapis.com/youtube/v3/videos",
-                params={"part": "snippet,contentDetails", "id": ",".join(ids), "key": settings.youtube_api_key},
+                VIDEOS_URL,
+                params={
+                    "part": "snippet,contentDetails,status",
+                    "id": ",".join(ids),
+                    "key": settings.youtube_api_key,
+                },
             )
             details.raise_for_status()
+    except httpx.HTTPError:
+        return []
 
-        details_by_id = {item["id"]: item for item in details.json().get("items", [])}
-        return [_youtube_item_to_result(details_by_id[video_id]) for video_id in ids if video_id in details_by_id]
-
+    details_by_id = {item["id"]: item for item in details.json().get("items", [])}
     results = []
-    for i in range(max_results):
-        seed = f"{query}-{category}-{i}"
-        video_id = hashlib.sha1(seed.encode()).hexdigest()[:11]
-        results.append(
-            {
-                "video_id": video_id,
-                "title": f"{query.title()}: {['A Practical Guide', 'What Nobody Tells You', 'The Honest Version', 'A Deep Dive', 'Getting Started'][i % 5]}",
-                "channel": _MOCK_CHANNELS[_seeded_int(seed, 0, len(_MOCK_CHANNELS) - 1)],
-                "duration_seconds": _seeded_int(seed, 180, 1800),
-                "description": f"A mocked search result standing in for real YouTube content about '{query}'.",
-                "tags": [query.lower(), category or "growth"],
-                "published_at": (datetime.now(timezone.utc) - timedelta(days=_seeded_int(seed, 1, 400))).isoformat(),
-            }
-        )
+    for video_id in ids:  # preserve the API's ranking
+        item = details_by_id.get(video_id)
+        if not item or not _is_playable(item):
+            continue
+        result = _to_result(item)
+        if result["thumbnail_url"]:
+            results.append(result)
     return results
 
 
-def _youtube_item_to_result(item: dict) -> dict:
+def _is_playable(item: dict) -> bool:
+    status = item.get("status", {})
+    return (
+        status.get("embeddable", False)
+        and status.get("privacyStatus") == "public"
+        and status.get("uploadStatus") == "processed"
+    )
+
+
+def _to_result(item: dict) -> dict:
     snippet = item.get("snippet", {})
-    duration = item.get("contentDetails", {}).get("duration", "PT0S")
-    import re
-    match = re.fullmatch(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
+    thumbnails = snippet.get("thumbnails", {})
+    best = (
+        thumbnails.get("maxres")
+        or thumbnails.get("standard")
+        or thumbnails.get("high")
+        or thumbnails.get("medium")
+        or thumbnails.get("default")
+        or {}
+    )
+    match = _DURATION_PATTERN.fullmatch(item.get("contentDetails", {}).get("duration", "PT0S"))
     hours, minutes, seconds = (int(part or 0) for part in match.groups()) if match else (0, 0, 0)
     return {
         "video_id": item["id"],
@@ -69,32 +126,25 @@ def _youtube_item_to_result(item: dict) -> dict:
         "channel": snippet.get("channelTitle", "YouTube"),
         "duration_seconds": hours * 3600 + minutes * 60 + seconds,
         "description": snippet.get("description", ""),
-        "tags": [],
+        "thumbnail_url": best.get("url", ""),
+        "url": f"https://www.youtube.com/watch?v={item['id']}",
+        "tags": snippet.get("tags", [])[:10],
         "published_at": snippet.get("publishedAt", datetime.now(timezone.utc).isoformat()),
     }
 
 
-def get_video_details(video_id: str) -> dict:
+def get_video_details(video_id: str) -> dict | None:
     settings = get_settings()
-    if not settings.youtube_mocked:
-        raise NotImplementedError("Real YouTube API integration not wired in this session — no API key provided.")
-    return {
-        "video_id": video_id,
-        "title": "Mocked video title",
-        "channel": _MOCK_CHANNELS[_seeded_int(video_id, 0, len(_MOCK_CHANNELS) - 1)],
-        "duration_seconds": _seeded_int(video_id, 180, 1800),
-        "transcript_available": True,
-    }
-
-
-def get_user_watch_history(user_oauth_token: str, time_range: str = "7d") -> list[dict]:
-    # No OAuth flow implemented this session — always empty until real auth exists.
-    return []
-
-
-def get_channel_details(channel_id: str) -> dict:
-    return {"channel_id": channel_id, "name": "Mocked Channel", "recent_videos": []}
-
-
-def get_video_transcript(video_id: str, language: str = "en") -> str:
-    return f"[mocked transcript for video {video_id}]"
+    if not settings.youtube_configured:
+        return None
+    try:
+        response = httpx.get(
+            VIDEOS_URL,
+            params={"part": "snippet,contentDetails,status", "id": video_id, "key": settings.youtube_api_key},
+            timeout=settings.curation_http_timeout,
+        )
+        response.raise_for_status()
+    except httpx.HTTPError:
+        return None
+    items = response.json().get("items", [])
+    return _to_result(items[0]) if items and _is_playable(items[0]) else None

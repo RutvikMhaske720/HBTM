@@ -55,13 +55,18 @@ def new_content_item(
     growth_potential_score: float = 0.5, difficulty: str = "accessible", duration_minutes: int = 10,
     mood: str = "reflective", source: str = "internal", url: str = "",
     thumbnail_url: str = "", video_id: str = "", published_at: str | None = None,
-    embedding: list[float] | None = None,
+    embedding: list[float] | None = None, relevance_score: float | None = None,
+    curated_for: str = "",
 ) -> Record:
+    # `relevance_score` and `curated_for` are provenance: they record that this
+    # item cleared the curation gates, and for whose profile. A record without
+    # them predates the gates and cannot be assumed to be relevant to anyone.
     return Record(
         id=id or _uuid(), title=title, content_type=content_type, domain=domain, description=description,
         growth_potential_score=growth_potential_score, difficulty=difficulty, duration_minutes=duration_minutes,
         mood=mood, source=source, url=url, thumbnail_url=thumbnail_url, video_id=video_id,
         published_at=published_at or _now(), embedding=embedding or [],
+        relevance_score=relevance_score, curated_for=curated_for,
     )
 
 

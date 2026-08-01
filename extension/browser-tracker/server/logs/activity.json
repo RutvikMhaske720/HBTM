@@ -1,0 +1,82 @@
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:23:19.449Z", "data": {}}
+{"type": "window_focused", "timestamp": "2026-08-01T19:29:12.727Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:29:13.332Z", "data": {}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:33:01.200Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:35:41.645Z", "data": {"state": "active"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:36:42.169Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:37:37.676Z", "data": {"state": "active"}}
+{"type": "window_focused", "timestamp": "2026-08-01T19:39:17.621Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:39:25.457Z", "data": {}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:39:25.457Z", "data": {"tabId": 631852661, "url": "https://www.youtube.com/", "title": "YouTube", "windowId": 631852532}}
+{"type": "history_visited", "timestamp": "2026-08-01T19:39:25.687Z", "data": {"id": "90", "url": "https://www.youtube.com/", "title": "YouTube", "visitCount": 2, "typedCount": 0}}
+{"type": "tab_updated", "timestamp": "2026-08-01T19:39:26.062Z", "data": {"tabId": 631852661, "url": "https://www.youtube.com/", "title": "YouTube", "incognito": false}}
+{"type": "history_visited", "timestamp": "2026-08-01T19:39:27.291Z", "data": {"id": "90", "url": "https://www.youtube.com/", "title": "YouTube", "visitCount": 2, "typedCount": 0}}
+{"type": "tab_updated", "timestamp": "2026-08-01T19:39:27.761Z", "data": {"tabId": 631852661, "url": "https://www.youtube.com/", "title": "YouTube", "incognito": false}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:39:30.101Z", "data": {"tabId": 631852633, "url": "chrome://extensions/", "title": "Extensions", "windowId": 631852532}}
+{"type": "window_focused", "timestamp": "2026-08-01T19:39:47.702Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:39:48.547Z", "data": {}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:39:48.550Z", "data": {"tabId": 631852623, "url": "https://www.google.com/search?q=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me&oq=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me+&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCjE5NjEwajBqMTWoAgiwAgHxBfOE0K8aMSEy&sourceid=chrome&source=chrome.rb&ie=UTF-8", "title": "thgere is a extension in vs code that can help to visualise langgraph flows like a digamram tell me - Google Search", "windowId": 631852532}}
+{"type": "window_focused", "timestamp": "2026-08-01T19:39:59.766Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:40:08.400Z", "data": {}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:40:08.403Z", "data": {"tabId": 631852633, "url": "chrome://extensions/", "title": "Extensions", "windowId": 631852532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:40:09.148Z", "data": {"tabId": 631852661, "url": "https://www.youtube.com/", "title": "YouTube", "windowId": 631852532}}
+{"type": "window_focused", "timestamp": "2026-08-01T19:40:20.932Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:40:39.894Z", "data": {}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:40:39.898Z", "data": {"tabId": 631852623, "url": "https://www.google.com/search?q=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me&oq=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me+&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCjE5NjEwajBqMTWoAgiwAgHxBfOE0K8aMSEy&sourceid=chrome&source=chrome.rb&ie=UTF-8", "title": "thgere is a extension in vs code that can help to visualise langgraph flows like a digamram tell me - Google Search", "windowId": 631852532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:40:40.908Z", "data": {"tabId": 631852610, "url": "https://nodejs.org/en/download", "title": "Node.js \u2014 Download Node.js\u00ae", "windowId": 631852532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:40:41.528Z", "data": {"tabId": 631852623, "url": "https://www.google.com/search?q=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me&oq=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me+&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCjE5NjEwajBqMTWoAgiwAgHxBfOE0K8aMSEy&sourceid=chrome&source=chrome.rb&ie=UTF-8", "title": "thgere is a extension in vs code that can help to visualise langgraph flows like a digamram tell me - Google Search", "windowId": 631852532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:40:42.460Z", "data": {"tabId": 631852610, "url": "https://nodejs.org/en/download", "title": "Node.js \u2014 Download Node.js\u00ae", "windowId": 631852532}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:41:43.604Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:43:36.611Z", "data": {"state": "active"}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:43:44.281Z", "data": {"tabId": 631852661, "url": "https://www.youtube.com/", "title": "YouTube", "windowId": 631852532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:43:45.229Z", "data": {"tabId": 631852633, "url": "chrome://extensions/", "title": "Extensions", "windowId": 631852532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:43:50.096Z", "data": {"tabId": 631852623, "url": "https://www.google.com/search?q=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me&oq=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me+&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCjE5NjEwajBqMTWoAgiwAgHxBfOE0K8aMSEy&sourceid=chrome&source=chrome.rb&ie=UTF-8", "title": "thgere is a extension in vs code that can help to visualise langgraph flows like a digamram tell me - Google Search", "windowId": 631852532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:43:52.514Z", "data": {"tabId": 631852633, "url": "chrome://extensions/", "title": "Extensions", "windowId": 631852532}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:45:11.363Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:45:16.328Z", "data": {"state": "active"}}
+{"type": "window_focused", "timestamp": "2026-08-01T19:45:24.224Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "tab_created", "timestamp": "2026-08-01T19:45:25.626Z", "data": {"tabId": 631852670, "url": "chrome://newtab/", "title": "New Tab", "incognito": false}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:45:25.627Z", "data": {"tabId": 631852670, "url": "", "title": "New Tab", "windowId": 631852532}}
+{"type": "tab_updated", "timestamp": "2026-08-01T19:45:25.715Z", "data": {"tabId": 631852670, "url": "chrome://newtab/", "title": "New Tab", "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:45:26.237Z", "data": {}}
+{"type": "history_visited", "timestamp": "2026-08-01T19:45:29.784Z", "data": {"id": "95", "url": "https://www.google.com/search?q=view+db+file+online&oq=view+db+&gs_lcrp=EgZjaHJvbWUqBwgCEAAYgAQyCggAEEUYFhgeGDkyBwgBEAAYgAQyBwgCEAAYgAQyBwgDEAAYgAQyCAgEEAAYFhgeMggIBRAAGBYYHjIICAYQABgWGB4yCAgHEAAYFhgeMggICBAAGBYYHjIICAkQABgWGB7SAQkzNDgxajBqMTWoAgiwAgHxBav0vff3XqfK&sourceid=chrome&source=chrome.rb&ie=UTF-8", "title": "", "visitCount": 1, "typedCount": 0}}
+{"type": "tab_updated", "timestamp": "2026-08-01T19:45:30.280Z", "data": {"tabId": 631852670, "url": "https://www.google.com/search?q=view+db+file+online&oq=view+db+&gs_lcrp=EgZjaHJvbWUqBwgCEAAYgAQyCggAEEUYFhgeGDkyBwgBEAAYgAQyBwgCEAAYgAQyBwgDEAAYgAQyCAgEEAAYFhgeMggIBRAAGBYYHjIICAYQABgWGB4yCAgHEAAYFhgeMggICBAAGBYYHjIICAkQABgWGB7SAQkzNDgxajBqMTWoAgiwAgHxBav0vff3XqfK&sourceid=chrome&source=chrome.rb&ie=UTF-8", "title": "view db file online - Google Search", "incognito": false}}
+{"type": "history_visited", "timestamp": "2026-08-01T19:45:30.962Z", "data": {"id": "96", "url": "https://inloop.github.io/sqlite-viewer/", "title": "", "visitCount": 1, "typedCount": 0}}
+{"type": "tab_updated", "timestamp": "2026-08-01T19:45:31.441Z", "data": {"tabId": 631852670, "url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "incognito": false}}
+{"type": "download_started", "timestamp": "2026-08-01T19:45:32.796Z", "data": {"id": 6, "url": "https://inloop.github.io/sqlite-viewer/examples/Chinook_Sqlite.sqlite", "filename": "", "totalBytes": 0, "incognito": false}}
+{"type": "download_completed", "timestamp": "2026-08-01T19:45:33.205Z", "data": {"id": 6}}
+{"type": "window_focused", "timestamp": "2026-08-01T19:46:12.447Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T19:46:15.219Z", "data": {}}
+{"type": "page_interaction", "timestamp": "2026-08-01T19:45:40.975Z", "data": {"url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "clicks": 2, "doubleClicks": 0, "rightClicks": 0, "scrollDistance": 0, "maxScroll": 0, "keysPressed": 0, "timeOnPage": 10025, "idleTime": 6316}}
+{"type": "page_interaction", "timestamp": "2026-08-01T19:46:20.973Z", "data": {"url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "clicks": 0, "doubleClicks": 0, "rightClicks": 0, "scrollDistance": 1972, "maxScroll": 736, "keysPressed": 0, "timeOnPage": 50023, "idleTime": 532}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:46:30.497Z", "data": {"tabId": 631852623, "url": "https://www.google.com/search?q=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me&oq=thgere+is+a+extension+in+vs+code+that+can+help+to+visualise+langgraph+flows+like+a+digamram+tell+me+&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIHCAEQIRiPAtIBCjE5NjEwajBqMTWoAgiwAgHxBfOE0K8aMSEy&sourceid=chrome&source=chrome.rb&ie=UTF-8", "title": "thgere is a extension in vs code that can help to visualise langgraph flows like a digamram tell me - Google Search", "windowId": 631852532}}
+{"type": "page_interaction", "timestamp": "2026-08-01T19:46:31.207Z", "data": {"url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "clicks": 0, "doubleClicks": 0, "rightClicks": 0, "scrollDistance": 972, "maxScroll": 736, "keysPressed": 0, "timeOnPage": 60257, "idleTime": 1788}}
+{"type": "tab_activated", "timestamp": "2026-08-01T19:46:31.749Z", "data": {"tabId": 631852670, "url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "windowId": 631852532}}
+{"type": "page_interaction", "timestamp": "2026-08-01T19:46:40.973Z", "data": {"url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "clicks": 0, "doubleClicks": 0, "rightClicks": 0, "scrollDistance": 736, "maxScroll": 736, "keysPressed": 0, "timeOnPage": 70023, "idleTime": 7944}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:47:34.387Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:49:58.854Z", "data": {"state": "active"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:50:59.433Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:52:57.599Z", "data": {"state": "active"}}
+{"type": "page_interaction", "timestamp": "2026-08-01T19:53:00.961Z", "data": {"url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "clicks": 1, "doubleClicks": 0, "rightClicks": 0, "scrollDistance": 736, "maxScroll": 736, "keysPressed": 0, "timeOnPage": 450011, "idleTime": 17}}
+{"type": "page_interaction", "timestamp": "2026-08-01T19:53:10.974Z", "data": {"url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "clicks": 0, "doubleClicks": 0, "rightClicks": 0, "scrollDistance": 309.6000061035156, "maxScroll": 736, "keysPressed": 0, "timeOnPage": 460024, "idleTime": 8069}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T19:54:03.290Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T20:01:00.347Z", "data": {"state": "active"}}
+{"type": "page_interaction", "timestamp": "2026-08-01T20:01:01.773Z", "data": {"url": "https://inloop.github.io/sqlite-viewer/", "title": "SQLite Viewer", "clicks": 1, "doubleClicks": 0, "rightClicks": 0, "scrollDistance": 0, "maxScroll": 736, "keysPressed": 0, "timeOnPage": 930823, "idleTime": 1410}}
+{"type": "tab_created", "timestamp": "2026-08-01T20:01:04.355Z", "data": {"tabId": 631852673, "url": "chrome://newtab/", "title": "New Tab", "incognito": false}}
+{"type": "tab_activated", "timestamp": "2026-08-01T20:01:04.356Z", "data": {"tabId": 631852673, "url": "", "title": "New Tab", "windowId": 631852532}}
+{"type": "tab_updated", "timestamp": "2026-08-01T20:01:04.443Z", "data": {"tabId": 631852673, "url": "chrome://newtab/", "title": "New Tab", "incognito": false}}
+{"type": "history_visited", "timestamp": "2026-08-01T20:01:10.073Z", "data": {"id": "98", "url": "https://github.com/", "title": "", "visitCount": 1, "typedCount": 1}}
+{"type": "history_visited", "timestamp": "2026-08-01T20:01:10.073Z", "data": {"id": "97", "url": "http://github.com/", "title": "", "visitCount": 1, "typedCount": 0}}
+{"type": "tab_created", "timestamp": "2026-08-01T20:01:11.259Z", "data": {"tabId": 631852676, "url": "chrome://newtab/", "title": "New Tab", "incognito": false}}
+{"type": "tab_activated", "timestamp": "2026-08-01T20:01:11.260Z", "data": {"tabId": 631852676, "url": "", "title": "New Tab", "windowId": 631852532}}
+{"type": "tab_updated", "timestamp": "2026-08-01T20:01:11.268Z", "data": {"tabId": 631852673, "url": "https://github.com/", "title": "GitHub \u00b7 Change is constant. GitHub keeps you ahead. \u00b7 GitHub", "incognito": false}}
+{"type": "tab_updated", "timestamp": "2026-08-01T20:01:11.331Z", "data": {"tabId": 631852676, "url": "chrome://newtab/", "title": "New Tab", "incognito": false}}
+{"type": "tab_activated", "timestamp": "2026-08-01T20:01:14.455Z", "data": {"tabId": 631852673, "url": "https://github.com/", "title": "GitHub \u00b7 Change is constant. GitHub keeps you ahead. \u00b7 GitHub", "windowId": 631852532}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T20:07:34.482Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T20:08:16.752Z", "data": {"state": "active"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T20:31:09.067Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T20:35:07.269Z", "data": {"state": "active"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T20:36:06.752Z", "data": {"state": "idle"}}
+{"type": "idle_state_changed", "timestamp": "2026-08-01T20:38:51.148Z", "data": {"state": "active"}}
+{"type": "window_focused", "timestamp": "2026-08-01T20:44:14.227Z", "data": {"windowId": 631852532, "incognito": false}}
+{"type": "window_unfocused", "timestamp": "2026-08-01T20:44:15.402Z", "data": {}}

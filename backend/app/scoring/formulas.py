@@ -6,15 +6,30 @@ from app.embeddings.embedder import get_embedder
 
 W_GOAL, W_IDENTITY, W_GROWTH, W_RECENCY, W_FEEDBACK = 0.30, 0.25, 0.25, 0.10, 0.10
 
+# Stand-in age for an item with no usable date: old enough that recency stops
+# helping it, but still rankable on the other four signals.
+_UNDATED_AGE_DAYS = 3650.0
+
 
 def days_since(published_at_iso: str, now) -> float:
+    """Age in days, tolerant of the date formats real sources emit.
+
+    External APIs return timestamps this has to survive: YouTube uses a
+    trailing "Z", which `fromisoformat` rejects before Python 3.11, and some
+    feeds provide no date at all. An unparseable date must not take down
+    ranking for the whole batch, so it is treated as old rather than fatal.
+    """
     from datetime import datetime
 
-    published = datetime.fromisoformat(published_at_iso)
+    if not published_at_iso:
+        return _UNDATED_AGE_DAYS
+    try:
+        published = datetime.fromisoformat(published_at_iso.strip().replace("Z", "+00:00"))
+    except ValueError:
+        return _UNDATED_AGE_DAYS
     if published.tzinfo is None:
         published = published.replace(tzinfo=now.tzinfo)
-    delta = now - published
-    return max(delta.total_seconds() / 86400, 0)
+    return max((now - published).total_seconds() / 86400, 0)
 
 
 def compute_feedback_factor(feedback_history: list[dict], item: dict) -> float:

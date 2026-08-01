@@ -9,6 +9,7 @@ required by the agent's system prompt in the spec.
 from datetime import datetime, timezone
 
 from app.agents.state import IABTMAgentState
+from app.db.database import SessionLocal
 from app.mcp_tools import semantic_search
 from app.scoring.formulas import compute_final_score
 
@@ -39,9 +40,13 @@ def run(state: IABTMAgentState) -> tuple[dict, dict]:
     feedback_history = state.get("feedback_history", [])
     candidates = state.get("candidate_pool", [])
 
-    user_vector = semantic_search.build_user_query_vector(
-        identity_summary, [f"{g['domain']} {g['title']}" for g in goals] or ["personal growth"]
-    )
+    # Feedback is folded into the query vector itself, so past likes move the
+    # ranking point inside the same space the catalogue is indexed in.
+    with SessionLocal() as db:
+        user_vector = semantic_search.build_user_query_vector(
+            identity_summary, [f"{g['domain']} {g['title']}" for g in goals] or ["personal growth"],
+            db=db, feedback_history=feedback_history,
+        )
     goal_vectors = [semantic_search.embed_text(f"{g['domain']} {g['title']}") for g in goals] or [user_vector]
 
     now = datetime.now(timezone.utc)

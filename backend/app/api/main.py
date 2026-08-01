@@ -12,9 +12,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
-from app.db.database import init_db
-from app.db.seed import seed_content_library
-from app.db.database import SessionLocal
+from app.db.database import SessionLocal, init_db
+from app.db.seed import prepare_library
 
 
 @asynccontextmanager
@@ -23,9 +22,18 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     init_db()
     with SessionLocal() as db:
-        seeded = seed_content_library(db)
-        if seeded:
-            print(f"[IABTM] Seeded {seeded} content items.")
+        # Fits the embedder and rebuilds the vector index before anything is
+        # served. Skipping this is what previously left the index holding
+        # vectors from a space the running process could no longer reproduce.
+        report = prepare_library(db)
+    print(
+        f"[IABTM] Library ready — {report['library_size']} items, "
+        f"{report['reindexed']} indexed"
+        + (f", {report['migrated']} migrated" if report["migrated"] else "")
+        + (f", {report['pruned']} pruned" if report["pruned"] else "")
+    )
+    if not settings.youtube_configured:
+        print("[IABTM] YOUTUBE_API_KEY is unset — Videos, Animation and YouTube music are unavailable.")
     print("[IABTM] Backend ready.")
     yield
     # Shutdown — nothing to clean up for SQLite
