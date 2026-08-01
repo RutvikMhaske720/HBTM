@@ -6,14 +6,14 @@ import { useIdentityStore } from "@/lib/store/identity.store";
 import type { Recommendation } from "@/lib/api";
 
 const DOMAIN_COLORS: Record<string, string> = {
-  Creativity: "#F4A261",
-  Mindset: "#5A4FF3",
-  Health: "#00C9A7",
-  Knowledge: "#3B82F6",
-  Career: "#8B5CF6",
-  Relationships: "#EC4899",
-  Finance: "#22C55E",
-  Purpose: "#F59E0B",
+  Creativity: "#C97A3D",
+  Mindset: "#6E5AA0",
+  Health: "#5E8F5A",
+  Knowledge: "#3E5E8C",
+  Career: "#9C7A3A",
+  Relationships: "#A8497A",
+  Finance: "#7A8C4A",
+  Purpose: "#2F6F6B",
 };
 
 const CONTENT_TYPE_EMOJI: Record<string, string> = {
@@ -55,7 +55,7 @@ export default function RecommendationCard({ rec, onFeedback }: Props) {
 
   return (
     <div
-      className={`group relative flex min-w-[220px] flex-col rounded-2xl border bg-white transition-all duration-200 ${
+      className={`group relative flex min-w-[220px] flex-col rounded-2xl border bg-(--color-surface) transition-all duration-200 ${
         hovered ? "border-(--color-ink) shadow-lg -translate-y-1" : "border-(--color-border)"
       }`}
       onMouseEnter={() => setHovered(true)}
@@ -137,7 +137,7 @@ export default function RecommendationCard({ rec, onFeedback }: Props) {
             </button>
             <button
               onClick={() => handleFeedback("not_for_me")}
-              className="rounded-lg border border-(--color-border) px-2.5 py-1.5 text-[12px] text-(--color-text-tertiary) hover:border-red-300 hover:text-red-500"
+              className="rounded-lg border border-(--color-border) px-2.5 py-1.5 text-[12px] text-(--color-text-tertiary) hover:border-(--color-accent-focus) hover:text-(--color-accent-focus)"
               title="Not for me"
             >
               ✕

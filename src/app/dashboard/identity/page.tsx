@@ -1,22 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { useIdentityStore } from "@/lib/store/identity.store";
 import type { IdentityGraph, IdentityNode } from "@/lib/api";
 
 const NODE_COLORS: Record<string, string> = {
-  archetype: "#5A4FF3",
-  trait: "#00C9A7",
-  habit: "#F4A261",
-  skill: "#3B82F6",
-  value: "#EC4899",
+  archetype: "#6E5AA0",
+  trait: "#5E8F5A",
+  habit: "#C97A3D",
+  skill: "#3E5E8C",
+  value: "#A8497A",
 };
 
-const POLARITY_BG: Record<string, string> = {
-  current: "#f7f5f0",
-  imagined: "#eef2ff",
-};
+const SVG_W = 760;
+const SVG_H = 440;
+const ME_HUB = { x: 150, y: 220 };
+const IAM_HUB = { x: 610, y: 220 };
+
+type LayoutNode = { node: IdentityNode; x: number; y: number };
+
+function arcLayout(nodes: IdentityNode[], hub: { x: number; y: number }, centerAngle: number, spread: number): LayoutNode[] {
+  const n = nodes.length;
+  return nodes.map((node, i) => {
+    const angle = n === 1 ? centerAngle : centerAngle - spread / 2 + (spread / (n - 1)) * i;
+    const radius = i % 2 === 0 ? 128 : 168;
+    const rad = (angle * Math.PI) / 180;
+    return { node, x: hub.x + radius * Math.cos(rad), y: hub.y + radius * Math.sin(rad) };
+  });
+}
 
 export default function IdentityPage() {
   const userId = useIdentityStore((s) => s.userId);
@@ -31,8 +43,18 @@ export default function IdentityPage() {
       .finally(() => setLoading(false));
   }, [userId]);
 
-  const currentNodes = graph?.nodes.filter((n) => n.polarity === "current") ?? [];
-  const imaginedNodes = graph?.nodes.filter((n) => n.polarity === "imagined") ?? [];
+  const currentNodes = graph?.nodes.filter((n) => n.polarity === "current" && n.node_type !== "narrative") ?? [];
+  const imaginedNodes = graph?.nodes.filter((n) => n.polarity === "imagined" && n.node_type !== "narrative") ?? [];
+  const currentNarrative = graph?.nodes.find((n) => n.polarity === "current" && n.node_type === "narrative")?.label;
+  const imaginedNarrative = graph?.nodes.find((n) => n.polarity === "imagined" && n.node_type === "narrative")?.label;
+
+  const currentLayout = useMemo(() => arcLayout(currentNodes, ME_HUB, 180, 150), [currentNodes]);
+  const imaginedLayout = useMemo(() => arcLayout(imaginedNodes, IAM_HUB, 0, 150), [imaginedNodes]);
+
+  const allNodes = [...currentNodes, ...imaginedNodes];
+  const avgWeight = allNodes.length > 0
+    ? Math.round((allNodes.reduce((acc, n) => acc + n.weight, 0) / allNodes.length) * 100)
+    : 0;
 
   if (loading) {
     return (
@@ -43,7 +65,7 @@ export default function IdentityPage() {
   }
 
   return (
-    <div className="max-w-5xl space-y-8">
+    <div className="max-w-6xl space-y-8">
       <div>
         <p className="text-[13px] uppercase tracking-widest text-(--color-text-tertiary)">
           Living representation
@@ -64,79 +86,176 @@ export default function IdentityPage() {
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-          {/* Graph visualization — bubble layout */}
-          <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-offwhite) p-6">
-            <div className="grid gap-6 sm:grid-cols-2">
-              {/* Current self column */}
-              <div>
-                <div className="mb-4 flex items-center gap-2">
-                  <span className="flex h-7 w-16 items-center justify-center rounded-full bg-(--color-ink) text-[11px] font-bold text-white">
-                    Me
-                  </span>
-                  <span className="text-[12px] text-(--color-text-tertiary)">Current self</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {currentNodes.map((node) => {
-                    const color = NODE_COLORS[node.node_type] ?? "#8a8a8a";
-                    const size = Math.round(node.weight * 100);
-                    return (
-                      <button
-                        key={node.id}
-                        onClick={() => setSelected(node)}
-                        className={`rounded-full px-3 py-1.5 text-[13px] font-medium text-white transition-transform hover:scale-105 ${
-                          selected?.id === node.id ? "ring-2 ring-offset-1 ring-(--color-ink)" : ""
-                        }`}
-                        style={{ background: color, opacity: 0.6 + node.weight * 0.4 }}
-                        title={`Weight: ${size}%`}
-                      >
-                        {node.label}
-                      </button>
-                    );
-                  })}
-                </div>
+          <div className="space-y-6">
+            {/* Quick-read stats so the graph isn't the only signal */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-offwhite) p-4">
+                <p className="text-2xl font-bold text-(--color-ink)">{currentNodes.length}</p>
+                <p className="mt-0.5 text-[12px] text-(--color-text-tertiary)">Current-self traits</p>
               </div>
-
-              {/* Imagined self column */}
-              <div>
-                <div className="mb-4 flex items-center gap-2">
-                  <span className="flex h-7 w-16 items-center justify-center rounded-full bg-(--color-accent-secondary) text-[11px] font-bold text-white">
-                    I Am
-                  </span>
-                  <span className="text-[12px] text-(--color-text-tertiary)">Imagined self</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {imaginedNodes.map((node) => {
-                    const color = NODE_COLORS[node.node_type] ?? "#5A4FF3";
-                    return (
-                      <button
-                        key={node.id}
-                        onClick={() => setSelected(node)}
-                        className={`rounded-full px-3 py-1.5 text-[13px] font-medium text-white transition-transform hover:scale-105 ${
-                          selected?.id === node.id ? "ring-2 ring-offset-1 ring-(--color-ink)" : ""
-                        }`}
-                        style={{ background: color, opacity: 0.6 + node.weight * 0.4 }}
-                      >
-                        {node.label}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-offwhite) p-4">
+                <p className="text-2xl font-bold text-(--color-ink)">{imaginedNodes.length}</p>
+                <p className="mt-0.5 text-[12px] text-(--color-text-tertiary)">Imagined-self traits</p>
+              </div>
+              <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-offwhite) p-4">
+                <p className="text-2xl font-bold text-(--color-accent-secondary)">{avgWeight}%</p>
+                <p className="mt-0.5 text-[12px] text-(--color-text-tertiary)">Avg. node weight</p>
               </div>
             </div>
 
-            {/* Legend */}
-            <div className="mt-6 flex flex-wrap gap-3 border-t border-(--color-border) pt-4">
-              {Object.entries(NODE_COLORS).map(([type, color]) => (
-                <span key={type} className="flex items-center gap-1.5 text-[11px] text-(--color-text-tertiary)">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
-                  {type}
-                </span>
-              ))}
+            {/* Graph visualization — radial network: Me and I Am as hubs,
+                traits as orbiting nodes, a "becoming" edge joins the two hubs */}
+            <div className="rounded-2xl border border-(--color-border) bg-(--color-bg-offwhite) p-6">
+              <svg
+                viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+                className="w-full h-auto"
+                role="img"
+                aria-label="Identity graph: current-self traits fan left from a Me hub, imagined-self traits fan right from an I Am hub, joined by a becoming edge"
+              >
+                <defs>
+                  <marker id="growth-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                    <path d="M0,0 L8,4 L0,8 Z" fill="var(--color-accent-secondary)" />
+                  </marker>
+                </defs>
+
+                {/* becoming edge */}
+                <line
+                  x1={ME_HUB.x + 34}
+                  y1={ME_HUB.y}
+                  x2={IAM_HUB.x - 36}
+                  y2={IAM_HUB.y}
+                  stroke="var(--color-accent-secondary)"
+                  strokeWidth={2}
+                  strokeDasharray="6 6"
+                  markerEnd="url(#growth-arrow)"
+                />
+                <text
+                  x={(ME_HUB.x + IAM_HUB.x) / 2}
+                  y={ME_HUB.y - 14}
+                  textAnchor="middle"
+                  className="text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ fill: "var(--color-accent-secondary)" }}
+                >
+                  becoming
+                </text>
+
+                {/* connector lines */}
+                {currentLayout.map(({ node, x, y }) => (
+                  <line
+                    key={`l-${node.id}`}
+                    x1={ME_HUB.x}
+                    y1={ME_HUB.y}
+                    x2={x}
+                    y2={y}
+                    stroke={NODE_COLORS[node.node_type] ?? "#8a8a8a"}
+                    strokeWidth={1.5}
+                    opacity={0.2 + node.weight * 0.35}
+                  />
+                ))}
+                {imaginedLayout.map(({ node, x, y }) => (
+                  <line
+                    key={`l-${node.id}`}
+                    x1={IAM_HUB.x}
+                    y1={IAM_HUB.y}
+                    x2={x}
+                    y2={y}
+                    stroke={NODE_COLORS[node.node_type] ?? "#8a8a8a"}
+                    strokeWidth={1.5}
+                    opacity={0.2 + node.weight * 0.35}
+                  />
+                ))}
+
+                {/* hubs */}
+                <circle cx={ME_HUB.x} cy={ME_HUB.y} r={30} style={{ fill: "var(--color-surface-raised)", stroke: "var(--color-border)" }} strokeWidth={1.5} />
+                <text x={ME_HUB.x} y={ME_HUB.y + 4} textAnchor="middle" className="text-[12px] font-bold" style={{ fill: "var(--color-ink)" }}>
+                  ME
+                </text>
+                <circle cx={IAM_HUB.x} cy={IAM_HUB.y} r={30} style={{ fill: "var(--color-accent-secondary)" }} />
+                <text x={IAM_HUB.x} y={IAM_HUB.y + 4} textAnchor="middle" className="text-[12px] font-bold" style={{ fill: "var(--color-text-inverse)" }}>
+                  I AM
+                </text>
+
+                {/* current-self nodes */}
+                {currentLayout.map(({ node, x, y }) => {
+                  const color = NODE_COLORS[node.node_type] ?? "#8a8a8a";
+                  const r = 6 + node.weight * 10;
+                  const isSelected = selected?.id === node.id;
+                  return (
+                    <g key={node.id} onClick={() => setSelected(node)} className="cursor-pointer">
+                      {isSelected && (
+                        <circle cx={x} cy={y} r={r + 5} fill="none" style={{ stroke: "var(--color-ink)" }} strokeWidth={2} />
+                      )}
+                      <circle cx={x} cy={y} r={r} fill={color} opacity={0.55 + node.weight * 0.45} />
+                      <text
+                        x={x - r - 8}
+                        y={y + 4}
+                        textAnchor="end"
+                        className="text-[12px] font-medium"
+                        style={{ fill: "var(--color-ink)" }}
+                      >
+                        {node.label}
+                      </text>
+                    </g>
+                  );
+                })}
+
+                {/* imagined-self nodes */}
+                {imaginedLayout.map(({ node, x, y }) => {
+                  const color = NODE_COLORS[node.node_type] ?? "#8a8a8a";
+                  const r = 6 + node.weight * 10;
+                  const isSelected = selected?.id === node.id;
+                  return (
+                    <g key={node.id} onClick={() => setSelected(node)} className="cursor-pointer">
+                      {isSelected && (
+                        <circle cx={x} cy={y} r={r + 5} fill="none" style={{ stroke: "var(--color-ink)" }} strokeWidth={2} />
+                      )}
+                      <circle cx={x} cy={y} r={r} fill={color} opacity={0.55 + node.weight * 0.45} />
+                      <text
+                        x={x + r + 8}
+                        y={y + 4}
+                        textAnchor="start"
+                        className="text-[12px] font-medium"
+                        style={{ fill: "var(--color-ink)" }}
+                      >
+                        {node.label}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+
+              {/* Legend */}
+              <div className="mt-4 flex flex-wrap gap-3 border-t border-(--color-border) pt-4">
+                {Object.entries(NODE_COLORS).map(([type, color]) => (
+                  <span key={type} className="flex items-center gap-1.5 text-[11px] text-(--color-text-tertiary)">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
+                    {type}
+                  </span>
+                ))}
+                <span className="ml-auto text-[11px] text-(--color-text-tertiary)">Bubble size = weight · click a node for detail</span>
+              </div>
             </div>
+
+            {/* In their own words — free text from onboarding, kept as prose
+                rather than squeezed into a pill */}
+            {(currentNarrative || imaginedNarrative) && (
+              <div className="space-y-3">
+                {currentNarrative && (
+                  <p className="rounded-xl border border-(--color-border) bg-(--color-surface) p-3 text-[13px] italic leading-relaxed text-(--color-text-secondary)">
+                    “{currentNarrative}”
+                  </p>
+                )}
+                {imaginedNarrative && (
+                  <p className="rounded-xl border border-(--color-border) bg-(--color-accent-secondary)/5 p-3 text-[13px] italic leading-relaxed text-(--color-text-secondary)">
+                    “{imaginedNarrative}”
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Node detail panel */}
-          <div className="rounded-2xl border border-(--color-border) bg-white p-5">
+          <div className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
             {selected ? (
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-(--color-text-tertiary)">

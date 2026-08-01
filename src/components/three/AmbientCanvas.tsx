@@ -49,7 +49,7 @@ function Dust() {
       </bufferGeometry>
       <pointsMaterial
         map={discTexture}
-        color="#dfe6ff"
+        color="#f0d9a0"
         size={0.06}
         sizeAttenuation
         transparent

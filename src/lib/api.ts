@@ -27,6 +27,8 @@ export interface OnboardingPayload {
   phone: string;
   current_self: string[];
   imagined_self: string[];
+  current_self_notes?: string;
+  imagined_self_notes?: string;
   goals: string[];
   goal_domains: string[];
   timeline: string;
@@ -37,6 +39,11 @@ export interface OnboardingPayload {
 export interface OnboardingResponse {
   user_id: string;
   name: string;
+}
+
+export interface GoalSuggestion {
+  domain: string;
+  suggested_title: string;
 }
 
 export interface ScoreBreakdown {
@@ -174,6 +181,10 @@ export const api = {
       body: JSON.stringify({ user_id: userId, content_id: contentId, interaction_type: interactionType }),
     }),
 
+  /** All-time feedback count, so giving feedback visibly shapes the curator */
+  getFeedbackCount: (userId: string) =>
+    req<{ count: number }>(`/api/v1/recommendations/${userId}/feedback-count`),
+
   /** Agent status */
   getAgentStatus: (userId: string) =>
     req<AgentStatus>(`/api/v1/agent/status/${userId}`),
@@ -194,6 +205,9 @@ export const api = {
     req<UserProfile>(`/api/v1/me/${userId}`),
 
   /** Goals */
+  getGoalSuggestions: () =>
+    req<GoalSuggestion[]>("/api/v1/goals/suggestions"),
+
   getGoals: (userId: string) =>
     req<Goal[]>(`/api/v1/goals/${userId}`),
 

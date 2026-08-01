@@ -71,7 +71,9 @@ def submit_feedback(content_id: str, payload: FeedbackPayload, db: Store = Depen
 
 @router.get("/recommendations/{user_id}/feedback-count", response_model=FeedbackCountOut)
 def get_feedback_count(user_id: str, db: Store = Depends(get_db)):
-    """All-time feedback count — surfaced on the dashboard so giving feedback
-    visibly feels like it's shaping the curator, not disappearing into a void."""
-    count = len(internal_db.get_feedback_history(db, user_id, time_range_days=3650))
+    """All-time count of explicit feedback signals (not passive views) —
+    surfaced on the dashboard so giving feedback visibly feels like it's
+    shaping the curator, not disappearing into a void."""
+    history = internal_db.get_feedback_history(db, user_id, time_range_days=3650)
+    count = sum(1 for h in history if h["interaction_type"] != "viewed")
     return FeedbackCountOut(count=count)

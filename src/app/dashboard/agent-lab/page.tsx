@@ -6,27 +6,27 @@ import { useIdentityStore } from "@/lib/store/identity.store";
 import type { AgentRun } from "@/lib/api";
 
 const AGENT_COLORS: Record<string, string> = {
-  "Memory Agent": "#5A4FF3",
-  "Identity Agent": "#00C9A7",
-  "Goal Agent": "#F59E0B",
-  "Content Retrieval Agent": "#3B82F6",
-  "Recommendation Agent": "#F4A261",
-  "Safety Agent": "#EC4899",
-  "Evaluation Agent": "#8B5CF6",
-  "Human Approval": "#6b7280",
-  "Output": "#22C55E",
-  "Notification Agent": "#14b8a6",
-  Runner: "#ef4444",
+  "Memory Agent": "#6E5AA0",
+  "Identity Agent": "#5E8F5A",
+  "Goal Agent": "#2F6F6B",
+  "Content Retrieval Agent": "#3E5E8C",
+  "Recommendation Agent": "#C97A3D",
+  "Safety Agent": "#A8497A",
+  "Evaluation Agent": "#9C7A3A",
+  "Human Approval": "#8a7a5e",
+  "Output": "#7A8C4A",
+  "Notification Agent": "#4d7a72",
+  Runner: "#9c4a3c",
 };
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { bg: string; text: string }> = {
-    success: { bg: "bg-emerald-100", text: "text-emerald-700" },
-    completed: { bg: "bg-emerald-100", text: "text-emerald-700" },
-    error: { bg: "bg-red-100", text: "text-red-700" },
-    failed: { bg: "bg-red-100", text: "text-red-700" },
-    running: { bg: "bg-violet-100", text: "text-violet-700" },
-    skipped: { bg: "bg-gray-100", text: "text-gray-600" },
+    success: { bg: "bg-(--color-status-success-bg)", text: "text-(--color-status-success-text)" },
+    completed: { bg: "bg-(--color-status-success-bg)", text: "text-(--color-status-success-text)" },
+    error: { bg: "bg-(--color-status-error-bg)", text: "text-(--color-status-error-text)" },
+    failed: { bg: "bg-(--color-status-error-bg)", text: "text-(--color-status-error-text)" },
+    running: { bg: "bg-(--color-status-running-bg)", text: "text-(--color-status-running-text)" },
+    skipped: { bg: "bg-(--color-status-neutral-bg)", text: "text-(--color-status-neutral-text)" },
   };
   const s = config[status] ?? config.skipped;
   return (
@@ -101,8 +101,8 @@ export default function AgentLabPage() {
               <button
                 key={run.id}
                 onClick={() => setSelectedRun(run)}
-                className={`w-full border-b border-(--color-border-subtle) px-5 py-3.5 text-left transition-colors hover:bg-white ${
-                  selectedRun?.id === run.id ? "bg-white" : ""
+                className={`w-full border-b border-(--color-border-subtle) px-5 py-3.5 text-left transition-colors hover:bg-(--color-surface) ${
+                  selectedRun?.id === run.id ? "bg-(--color-surface)" : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -143,7 +143,7 @@ export default function AgentLabPage() {
         )}
 
         {/* Step trace */}
-        <div className="flex-1 overflow-y-auto rounded-2xl border border-(--color-border) bg-(--color-ink) p-5 font-mono text-[13px]">
+        <div className="flex-1 overflow-y-auto rounded-2xl border border-(--color-border) bg-(--color-surface) p-5 font-mono text-[13px]">
           {!selectedRun ? (
             <p className="text-(--color-text-tertiary)">Select a run to see its trace.</p>
           ) : steps.length === 0 ? (
@@ -170,7 +170,7 @@ export default function AgentLabPage() {
                         <summary className="cursor-pointer text-white/60 hover:text-white/90">
                           Detail
                         </summary>
-                        <pre className="mt-2 overflow-x-auto rounded-lg bg-black/30 p-3 text-[11px] text-emerald-300">
+                        <pre className="mt-2 overflow-x-auto rounded-lg bg-black/30 p-3 text-[11px] text-(--color-status-running-text)">
                           {JSON.stringify(step.detail, null, 2)}
                         </pre>
                       </details>

@@ -5,14 +5,14 @@ import { api } from "@/lib/api";
 import type { ContentItem } from "@/lib/api";
 
 const DOMAIN_COLORS: Record<string, string> = {
-  Creativity: "#F4A261",
-  Mindset: "#5A4FF3",
-  Health: "#00C9A7",
-  Knowledge: "#3B82F6",
-  Career: "#8B5CF6",
-  Relationships: "#EC4899",
-  Finance: "#22C55E",
-  Purpose: "#F59E0B",
+  Creativity: "#C97A3D",
+  Mindset: "#6E5AA0",
+  Health: "#5E8F5A",
+  Knowledge: "#3E5E8C",
+  Career: "#9C7A3A",
+  Relationships: "#A8497A",
+  Finance: "#7A8C4A",
+  Purpose: "#2F6F6B",
 };
 
 const DOMAINS = ["All", "Creativity", "Mindset", "Health", "Knowledge", "Career", "Relationships", "Finance", "Purpose"];
@@ -59,7 +59,7 @@ export default function LibraryPage() {
               onClick={() => setDomain(d)}
               className={`rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors ${
                 domain === d
-                  ? "bg-(--color-ink) text-white"
+                  ? "bg-(--color-accent-secondary) text-(--color-text-inverse)"
                   : "border border-(--color-border) text-(--color-ink) hover:bg-(--color-bg-offwhite)"
               }`}
             >
@@ -75,7 +75,7 @@ export default function LibraryPage() {
               onClick={() => setContentType(t)}
               className={`rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors ${
                 contentType === t
-                  ? "bg-(--color-ink) text-white"
+                  ? "bg-(--color-accent-secondary) text-(--color-text-inverse)"
                   : "border border-(--color-border) text-(--color-ink) hover:bg-(--color-bg-offwhite)"
               }`}
             >
@@ -89,7 +89,7 @@ export default function LibraryPage() {
       {loading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="animate-pulse rounded-2xl border border-(--color-border) bg-white p-5 space-y-3">
+            <div key={i} className="animate-pulse rounded-2xl border border-(--color-border) bg-(--color-surface) p-5 space-y-3">
               <div className="h-3 w-16 rounded-full bg-(--color-border)" />
               <div className="h-4 w-full rounded bg-(--color-border)" />
               <div className="h-3 w-24 rounded bg-(--color-border)" />
@@ -108,7 +108,7 @@ export default function LibraryPage() {
             return (
               <div
                 key={item.id}
-                className="group flex flex-col rounded-2xl border border-(--color-border) bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
+                className="group flex flex-col rounded-2xl border border-(--color-border) bg-(--color-surface) p-5 transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
                 {/* Top color band */}
                 <div className="mb-4 h-1 w-12 rounded-full" style={{ background: color }} />

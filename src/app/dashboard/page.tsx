@@ -10,14 +10,14 @@ import AmbientBackdrop from "@/components/AmbientBackdrop";
 import type { Goal, Recommendation } from "@/lib/api";
 
 const DOMAIN_COLORS: Record<string, string> = {
-  Creativity: "#F4A261",
-  Mindset: "#5A4FF3",
-  Health: "#00C9A7",
-  Knowledge: "#3B82F6",
-  Career: "#8B5CF6",
-  Relationships: "#EC4899",
-  Finance: "#22C55E",
-  Purpose: "#F59E0B",
+  Creativity: "#C97A3D",
+  Mindset: "#6E5AA0",
+  Health: "#5E8F5A",
+  Knowledge: "#3E5E8C",
+  Career: "#9C7A3A",
+  Relationships: "#A8497A",
+  Finance: "#7A8C4A",
+  Purpose: "#2F6F6B",
 };
 
 export default function DashboardPage() {
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const { recommendations, setRecommendations, setLoading, isLoading } = useRecommendationsStore();
   const agentStatus = useAgentStore((s) => s.status);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [feedbackCount, setFeedbackCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -35,10 +36,12 @@ export default function DashboardPage() {
     Promise.all([
       api.getRecommendations(userId),
       api.getGoals(userId),
+      api.getFeedbackCount(userId),
     ])
-      .then(([recs, g]) => {
+      .then(([recs, g, feedback]) => {
         setRecommendations(recs);
         setGoals(g);
+        setFeedbackCount(feedback.count);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -63,14 +66,14 @@ export default function DashboardPage() {
   return (
     <div className="max-w-6xl space-y-10">
       {/* Header */}
-      <div className="relative flex items-start justify-between overflow-hidden rounded-3xl bg-(--color-ink) px-8 py-10">
+      <div className="relative flex items-start justify-between overflow-hidden rounded-3xl border border-(--color-border) bg-(--color-surface-raised) px-8 py-10">
         <AmbientBackdrop />
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent to-(--color-ink)/60" />
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-transparent to-(--color-bg-primary)/60" />
         <div className="relative z-10">
           <p className="text-[13px] uppercase tracking-widest text-white/50">
             AI-Curated Growth Feed
           </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-(--color-text-inverse)">
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-(--color-spotlight)">
             Your Dashboard
           </h1>
         </div>
@@ -84,12 +87,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         {[
           { label: "Recommendations", value: recommendations.length.toString(), icon: "✦" },
           { label: "Active Goals", value: goals.length.toString(), icon: "◎" },
           { label: "Avg Growth Score", value: recommendations.length > 0 ? `${Math.round((recommendations.reduce((acc, r) => acc + r.growth_potential_score, 0) / recommendations.length) * 100)}%` : "—", icon: "↑" },
           { label: "Domains Covered", value: [...new Set(recommendations.map((r) => r.domain))].length.toString(), icon: "◈" },
+          { label: "Feedback Given", value: feedbackCount.toString(), icon: "◆" },
         ].map((stat) => (
           <div
             key={stat.label}
@@ -111,7 +115,10 @@ export default function DashboardPage() {
             AI Curated
           </span>
         </div>
-        <RecommendationFeed recommendations={recommendations} />
+        <RecommendationFeed
+          recommendations={recommendations}
+          onFeedback={() => setFeedbackCount((c) => c + 1)}
+        />
       </section>
 
       {/* Active Goals */}
@@ -125,7 +132,7 @@ export default function DashboardPage() {
               return (
                 <div
                   key={goal.id}
-                  className="rounded-2xl border border-(--color-border) bg-white p-5"
+                  className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-5"
                 >
                   <div className="flex items-center gap-2">
                     <span

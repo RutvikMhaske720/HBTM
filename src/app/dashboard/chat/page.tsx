@@ -92,7 +92,7 @@ export default function ChatPage() {
               <div
                 className={`rounded-2xl px-4 py-3 text-[14px] leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-(--color-ink) text-white rounded-tr-sm"
+                    ? "bg-(--color-accent-secondary) text-(--color-text-inverse) rounded-tr-sm"
                     : "bg-(--color-bg-offwhite) text-(--color-ink) rounded-tl-sm border border-(--color-border)"
                 }`}
               >
@@ -105,11 +105,11 @@ export default function ChatPage() {
                   {msg.recs.map((rec) => (
                     <div
                       key={rec.id}
-                      className="flex items-start gap-3 rounded-xl border border-(--color-border) bg-white p-3"
+                      className="flex items-start gap-3 rounded-xl border border-(--color-border) bg-(--color-surface) p-3"
                     >
                       <div
                         className="mt-0.5 h-3 w-3 flex-shrink-0 rounded-full"
-                        style={{ background: "#5A4FF3" }}
+                        style={{ background: "#6E5AA0" }}
                       />
                       <div>
                         <p className="text-[13px] font-semibold text-(--color-ink)">{rec.title}</p>
@@ -152,12 +152,12 @@ export default function ChatPage() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
           placeholder="Ask your curator anything…"
-          className="flex-1 rounded-full border border-(--color-border) bg-white px-5 py-3 text-[14px] outline-none focus:ring-2 focus:ring-(--color-accent-secondary)"
+          className="flex-1 rounded-full border border-(--color-border) bg-(--color-surface) px-5 py-3 text-[14px] outline-none focus:ring-2 focus:ring-(--color-accent-secondary)"
         />
         <button
           onClick={handleSend}
           disabled={!input.trim() || loading}
-          className="rounded-full bg-(--color-ink) px-6 py-3 text-[14px] font-medium text-white disabled:opacity-40 transition-opacity"
+          className="rounded-full bg-(--color-accent-secondary) px-6 py-3 text-[14px] font-medium text-(--color-text-inverse) disabled:opacity-40 transition-opacity"
         >
           Send
         </button>

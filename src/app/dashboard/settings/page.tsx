@@ -15,7 +15,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Profile section */}
-      <section className="rounded-2xl border border-(--color-border) bg-white p-6 space-y-4">
+      <section className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 space-y-4">
         <h2 className="text-[15px] font-semibold text-(--color-ink)">Profile</h2>
         <div className="space-y-3 text-[14px]">
           <div className="flex justify-between border-b border-(--color-border-subtle) pb-3">
@@ -30,7 +30,7 @@ export default function SettingsPage() {
       </section>
 
       {/* AI Mode section */}
-      <section className="rounded-2xl border border-(--color-border) bg-white p-6 space-y-4">
+      <section className="rounded-2xl border border-(--color-border) bg-(--color-surface) p-6 space-y-4">
         <h2 className="text-[15px] font-semibold text-(--color-ink)">AI Mode</h2>
         <div className="grid grid-cols-3 gap-3">
           {["Cloud", "Hybrid", "Local"].map((mode, i) => (
@@ -39,7 +39,7 @@ export default function SettingsPage() {
               disabled={i > 0}
               className={`rounded-xl border p-4 text-left text-[13px] transition-colors ${
                 i === 0
-                  ? "border-(--color-ink) bg-(--color-ink)/5"
+                  ? "border-(--color-accent-secondary) bg-(--color-accent-secondary)/10"
                   : "border-(--color-border) opacity-50"
               }`}
             >
@@ -53,16 +53,16 @@ export default function SettingsPage() {
       </section>
 
       {/* Danger zone */}
-      <section className="rounded-2xl border border-red-200 bg-red-50 p-6 space-y-3">
-        <h2 className="text-[15px] font-semibold text-red-700">Danger Zone</h2>
-        <p className="text-[13px] text-red-600">
+      <section className="rounded-2xl border border-(--color-accent-focus)/40 bg-(--color-status-error-bg) p-6 space-y-3">
+        <h2 className="text-[15px] font-semibold text-(--color-status-error-text)">Danger Zone</h2>
+        <p className="text-[13px] text-(--color-status-error-text)">
           Clearing your session will remove your user ID from this device. Your data remains in the backend.
         </p>
         <button
           onClick={() => {
             if (confirm("Clear local session?")) clear();
           }}
-          className="rounded-full bg-red-600 px-5 py-2.5 text-[13px] font-medium text-white hover:bg-red-700"
+          className="rounded-full bg-(--color-accent-focus) px-5 py-2.5 text-[13px] font-medium text-(--color-ink) hover:brightness-110"
         >
           Clear Session
         </button>

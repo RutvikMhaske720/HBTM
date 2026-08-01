@@ -28,9 +28,9 @@ export default function InteractiveHero({
     <div
       ref={heroRef}
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen w-full overflow-hidden bg-(--color-ink)"
+      className="relative min-h-screen w-full overflow-hidden bg-(--color-bg-primary)"
     >
-      {/* Cursor-reactive spotlight, replaces the old particle glow with a cheap CSS equivalent */}
+      {/* Cursor-reactive spotlight — the warm beam falling across the dark room */}
       <div
         ref={spotlightRef}
         className="pointer-events-none absolute inset-0 transition-opacity duration-300"
@@ -39,11 +39,11 @@ export default function InteractiveHero({
             "--spot-x": "50%",
             "--spot-y": "35%",
             background:
-              "radial-gradient(600px circle at var(--spot-x) var(--spot-y), color-mix(in srgb, var(--color-accent-secondary) 18%, transparent), transparent 70%)",
+              "radial-gradient(700px circle at var(--spot-x) var(--spot-y), color-mix(in srgb, var(--color-spotlight) 22%, transparent), transparent 70%)",
           } as React.CSSProperties
         }
       />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(0,0,0,0.5)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_0%,_rgba(0,0,0,0.6)_100%)]" />
 
       <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col items-center justify-center px-6 py-28 text-center">
         <motion.div
@@ -100,7 +100,7 @@ export default function InteractiveHero({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-6 overflow-hidden rounded-2xl bg-(--color-bg-offwhite) text-left shadow-2xl"
+              className="mt-6 overflow-hidden rounded-2xl border border-(--color-border) bg-(--color-bg-offwhite) text-left shadow-2xl"
             >
               <div className="h-1.5 w-full" style={{ background: active.color }} />
               <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
@@ -147,13 +147,13 @@ export default function InteractiveHero({
         >
           <MagneticButton
             href="/onboarding"
-            className="inline-block rounded-full bg-(--color-bg-offwhite) px-7 py-3.5 text-[15px] font-medium text-(--color-ink) transition-transform hover:-translate-y-0.5"
+            className="inline-block rounded-full bg-(--color-accent-secondary) px-7 py-3.5 text-[15px] font-medium text-(--color-text-inverse) transition-transform hover:-translate-y-0.5"
           >
             Start Here
           </MagneticButton>
           <MagneticButton
             href="/onboarding"
-            className="inline-block rounded-full border border-white/30 px-7 py-3.5 text-[15px] font-medium text-white transition-colors hover:bg-white/10"
+            className="inline-block rounded-full border border-(--color-ink-soft)/30 px-7 py-3.5 text-[15px] font-medium text-(--color-ink) transition-colors hover:bg-white/10"
           >
             I want to be better
           </MagneticButton>

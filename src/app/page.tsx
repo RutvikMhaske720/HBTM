@@ -32,7 +32,7 @@ export default function Home() {
           <p className="mb-5 text-xs font-medium uppercase tracking-[0.3em] text-white/60">
             Your AI growth companion
           </p>
-          <h1 className="max-w-3xl text-5xl font-extrabold tracking-tight text-(--color-bg-offwhite) sm:text-6xl lg:text-7xl">
+          <h1 className="max-w-3xl text-5xl font-extrabold tracking-tight text-(--color-spotlight) sm:text-6xl lg:text-7xl">
             I am better than me
           </h1>
           <p className="mx-auto mt-6 max-w-md text-lg text-white/70">
@@ -71,8 +71,8 @@ export default function Home() {
 
         <section className="mx-auto max-w-6xl px-6 pb-28 lg:px-10">
           <Reveal>
-            <div className="flex flex-col items-center gap-6 rounded-3xl bg-(--color-bg-beige) px-8 py-16 text-center">
-              <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-(--color-ink)">
+            <div className="flex flex-col items-center gap-6 rounded-3xl border border-(--color-border) bg-(--color-bg-beige) px-8 py-16 text-center">
+              <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-(--color-surface-raised)">
                 <span className="h-3 w-3 animate-pulse rounded-full bg-(--color-accent-tertiary)" />
               </span>
               <h2 className="max-w-lg text-3xl font-bold tracking-tight text-(--color-ink)">
@@ -84,7 +84,7 @@ export default function Home() {
               </p>
               <MagneticButton
                 href="/onboarding"
-                className="mt-2 inline-block rounded-full bg-(--color-ink) px-7 py-3.5 text-[15px] font-medium text-(--color-text-inverse) transition-transform hover:-translate-y-0.5"
+                className="mt-2 inline-block rounded-full bg-(--color-accent-secondary) px-7 py-3.5 text-[15px] font-medium text-(--color-text-inverse) transition-transform hover:-translate-y-0.5"
               >
                 Let&apos;s grow
               </MagneticButton>

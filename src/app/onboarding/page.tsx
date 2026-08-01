@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import type { GoalSuggestion } from "@/lib/api";
 import { useIdentityStore } from "@/lib/store/identity.store";
 import { useAgentStore } from "@/lib/store/agent.store";
 
@@ -28,14 +29,14 @@ const LEARNING_STYLES = ["Verbal", "Aural", "Kinesthetic", "Logical", "Social", 
 const MEDIA_TYPES = ["Audio", "Video", "Books", "Articles", "Presentation", "Movies", "Podcasts"];
 
 const GOAL_DOMAINS: { label: string; color: string }[] = [
-  { label: "Career", color: "#8B5CF6" },
-  { label: "Creativity", color: "#F4A261" },
-  { label: "Mindset", color: "#5A4FF3" },
-  { label: "Health", color: "#00C9A7" },
-  { label: "Knowledge", color: "#3B82F6" },
-  { label: "Relationships", color: "#EC4899" },
-  { label: "Finance", color: "#22C55E" },
-  { label: "Purpose", color: "#F59E0B" },
+  { label: "Career", color: "#9C7A3A" },
+  { label: "Creativity", color: "#C97A3D" },
+  { label: "Mindset", color: "#6E5AA0" },
+  { label: "Health", color: "#5E8F5A" },
+  { label: "Knowledge", color: "#3E5E8C" },
+  { label: "Relationships", color: "#A8497A" },
+  { label: "Finance", color: "#7A8C4A" },
+  { label: "Purpose", color: "#2F6F6B" },
 ];
 
 const TIMELINES = ["3 months", "6 months", "1 year", "Ongoing"];
@@ -59,6 +60,8 @@ const STEP_EYEBROWS = [
 type FormState = {
   currentSelf: string[];
   imaginedSelf: string[];
+  currentSelfNotes: string;
+  imaginedSelfNotes: string;
   learningStyles: string[];
   mediaTypes: string[];
   name: string;
@@ -67,12 +70,15 @@ type FormState = {
   phone: string;
   photo: string | null;
   goals: string[];
+  goalTitles: Record<string, string>;
   timeline: string | null;
 };
 
 const EMPTY_FORM: FormState = {
   currentSelf: [],
   imaginedSelf: [],
+  currentSelfNotes: "",
+  imaginedSelfNotes: "",
   learningStyles: [],
   mediaTypes: [],
   name: "",
@@ -81,6 +87,7 @@ const EMPTY_FORM: FormState = {
   phone: "",
   photo: null,
   goals: [],
+  goalTitles: {},
   timeline: null,
 };
 
@@ -109,14 +116,14 @@ function Pill({
       onClick={onClick}
       className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] transition-colors ${
         active
-          ? "border-(--color-ink) bg-(--color-ink) text-white"
-          : "border-(--color-border) bg-white text-(--color-ink-soft) hover:border-(--color-ink-soft)"
+          ? "border-(--color-accent-secondary) bg-(--color-accent-secondary) text-(--color-text-inverse)"
+          : "border-(--color-border) bg-(--color-surface) text-(--color-ink-soft) hover:border-(--color-ink-soft)"
       }`}
     >
       {dotColor && (
         <span
           className="h-2 w-2 rounded-full"
-          style={{ background: active ? "#fff" : dotColor }}
+          style={{ background: active ? "var(--color-text-inverse)" : dotColor }}
         />
       )}
       {label}
@@ -126,7 +133,7 @@ function Pill({
 
 function SearchBox({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-full border border-(--color-border) bg-white px-4 py-2.5">
+    <div className="flex items-center gap-2 rounded-full border border-(--color-border) bg-(--color-surface) px-4 py-2.5">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-(--color-text-tertiary)">
         <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
         <path d="M21 21l-4.3-4.3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -170,11 +177,19 @@ function IdentityStep({ form, setForm }: { form: FormState; setForm: (f: FormSta
             />
           ))}
         </div>
+        <textarea
+          value={form.currentSelfNotes}
+          onChange={(e) => setForm({ ...form, currentSelfNotes: e.target.value })}
+          placeholder="Anything else about where you're at right now? (optional)"
+          rows={3}
+          maxLength={500}
+          className="mt-4 w-full rounded-xl border border-(--color-border) bg-(--color-surface) p-3 text-[14px] outline-none placeholder:text-(--color-text-tertiary) focus:ring-2 focus:ring-(--color-accent-secondary)"
+        />
       </div>
 
       <div>
         <div className="mb-4 flex items-center gap-3">
-          <span className="flex h-10 w-24 items-center justify-center rounded-full bg-(--color-ink) text-sm font-semibold text-white">
+          <span className="flex h-10 w-24 items-center justify-center rounded-full bg-(--color-accent-secondary) text-sm font-semibold text-(--color-text-inverse)">
             I Am
           </span>
           <span className="text-[13px] text-(--color-text-tertiary)">This is your imagined self</span>
@@ -190,6 +205,14 @@ function IdentityStep({ form, setForm }: { form: FormState; setForm: (f: FormSta
             />
           ))}
         </div>
+        <textarea
+          value={form.imaginedSelfNotes}
+          onChange={(e) => setForm({ ...form, imaginedSelfNotes: e.target.value })}
+          placeholder="Anything else about who you're becoming? (optional)"
+          rows={3}
+          maxLength={500}
+          className="mt-4 w-full rounded-xl border border-(--color-border) bg-(--color-surface) p-3 text-[14px] outline-none placeholder:text-(--color-text-tertiary) focus:ring-2 focus:ring-(--color-accent-secondary)"
+        />
       </div>
     </div>
   );
@@ -259,7 +282,7 @@ function Field({
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-12 w-full rounded-lg border border-(--color-border) bg-white px-4 text-[15px] outline-none focus:ring-2 focus:ring-(--color-accent-secondary)"
+        className="h-12 w-full rounded-lg border border-(--color-border) bg-(--color-surface) px-4 text-[15px] outline-none focus:ring-2 focus:ring-(--color-accent-secondary)"
       />
     </label>
   );
@@ -268,6 +291,18 @@ function Field({
 // --- Step 5: Goals ---------------------------------------------------------
 
 function GoalsStep({ form, setForm }: { form: FormState; setForm: (f: FormState) => void }) {
+  const [suggestions, setSuggestions] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    api.getGoalSuggestions()
+      .then((list: GoalSuggestion[]) => {
+        setSuggestions(Object.fromEntries(list.map((s) => [s.domain, s.suggested_title])));
+      })
+      .catch(() => {
+        // Non-critical — the goal title input just falls back to the domain name.
+      });
+  }, []);
+
   return (
     <div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -277,11 +312,22 @@ function GoalsStep({ form, setForm }: { form: FormState; setForm: (f: FormState)
             <button
               key={g.label}
               type="button"
-              onClick={() => setForm({ ...form, goals: toggleInList(form.goals, g.label) })}
+              onClick={() => {
+                const nextGoals = toggleInList(form.goals, g.label);
+                const turningOn = nextGoals.includes(g.label) && !form.goals.includes(g.label);
+                setForm({
+                  ...form,
+                  goals: nextGoals,
+                  goalTitles:
+                    turningOn && !form.goalTitles[g.label]
+                      ? { ...form.goalTitles, [g.label]: suggestions[g.label] ?? "" }
+                      : form.goalTitles,
+                });
+              }}
               className={`flex flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-colors ${
-                active ? "border-(--color-ink)" : "border-(--color-border) hover:border-(--color-ink-soft)"
+                active ? "border-(--color-accent-secondary)" : "border-(--color-border) hover:border-(--color-ink-soft)"
               }`}
-              style={{ background: active ? `${g.color}14` : "#fff" }}
+              style={{ background: active ? `${g.color}26` : "var(--color-surface)" }}
             >
               <span className="h-8 w-8 rounded-full" style={{ background: g.color }} />
               <span className="text-[15px] font-semibold text-(--color-ink)">{g.label}</span>
@@ -289,6 +335,23 @@ function GoalsStep({ form, setForm }: { form: FormState; setForm: (f: FormState)
           );
         })}
       </div>
+
+      {form.goals.length > 0 && (
+        <div className="mt-8 space-y-3">
+          <p className="text-[14px] font-medium text-(--color-ink)">Make it specific (optional)</p>
+          {form.goals.map((domain) => (
+            <div key={domain} className="flex items-center gap-3">
+              <span className="w-28 shrink-0 text-[12px] font-medium text-(--color-text-tertiary)">{domain}</span>
+              <input
+                value={form.goalTitles[domain] ?? ""}
+                onChange={(e) => setForm({ ...form, goalTitles: { ...form.goalTitles, [domain]: e.target.value } })}
+                placeholder={suggestions[domain] ?? domain}
+                className="h-10 flex-1 rounded-lg border border-(--color-border) bg-(--color-surface) px-3 text-[13px] outline-none focus:ring-2 focus:ring-(--color-accent-secondary)"
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       <p className="mb-3 mt-9 text-[14px] font-medium text-(--color-ink)">By when?</p>
       <div className="flex flex-wrap gap-2.5">
@@ -303,11 +366,11 @@ function GoalsStep({ form, setForm }: { form: FormState; setForm: (f: FormState)
 // --- Completion reveal ------------------------------------------------------
 
 const SAMPLE_RECS = [
-  { title: "The Creative Habit", type: "Book", domain: "Creativity", color: "#F4A261", why: "Builds on your goal to work on Creativity" },
-  { title: "Deep Work — Cal Newport (talk)", type: "Podcast", domain: "Mindset", color: "#5A4FF3", why: "Matches your imagined-self trait: Focused" },
-  { title: "Atomic Habits, Ch. 1–3", type: "Article", domain: "Health", color: "#00C9A7", why: "Addresses your current-self trait: Time Management" },
-  { title: "A Short Film About Discipline", type: "Film", domain: "Purpose", color: "#F59E0B", why: "Aligned with your 6 month timeline" },
-  { title: "Studio Ghibli Art Retrospective", type: "Art", domain: "Creativity", color: "#F4A261", why: "Selected for your Verbal learning style" },
+  { title: "The Creative Habit", type: "Book", domain: "Creativity", color: "#C97A3D", why: "Builds on your goal to work on Creativity" },
+  { title: "Deep Work — Cal Newport (talk)", type: "Podcast", domain: "Mindset", color: "#6E5AA0", why: "Matches your imagined-self trait: Focused" },
+  { title: "Atomic Habits, Ch. 1–3", type: "Article", domain: "Health", color: "#5E8F5A", why: "Addresses your current-self trait: Time Management" },
+  { title: "A Short Film About Discipline", type: "Film", domain: "Purpose", color: "#2F6F6B", why: "Aligned with your 6 month timeline" },
+  { title: "Studio Ghibli Art Retrospective", type: "Art", domain: "Creativity", color: "#C97A3D", why: "Selected for your Verbal learning style" },
 ];
 
 function RevealStep({ recs }: { recs: typeof SAMPLE_RECS }) {
@@ -344,7 +407,7 @@ function RevealStep({ recs }: { recs: typeof SAMPLE_RECS }) {
         {displayRecs.slice(0, 5).map((rec, i) => (
           <div
             key={rec.title}
-            className="flex flex-col justify-between rounded-2xl border border-(--color-border) bg-white p-4"
+            className="flex flex-col justify-between rounded-2xl border border-(--color-border) bg-(--color-surface) p-4"
             style={{ animation: `fadeInUp 400ms ${i * 90}ms both` }}
           >
             <div>
@@ -364,7 +427,7 @@ function RevealStep({ recs }: { recs: typeof SAMPLE_RECS }) {
       <div className="mt-10 flex justify-center">
         <Link
           href="/dashboard"
-          className="rounded-full bg-(--color-ink) px-8 py-3.5 text-[15px] font-medium text-white transition-transform hover:-translate-y-0.5"
+          className="rounded-full bg-(--color-accent-secondary) px-8 py-3.5 text-[15px] font-medium text-(--color-text-inverse) transition-transform hover:-translate-y-0.5"
         >
           Enter your dashboard
         </Link>
@@ -377,14 +440,14 @@ function RevealStep({ recs }: { recs: typeof SAMPLE_RECS }) {
 }
 
 const DOMAIN_COLORS: Record<string, string> = {
-  Creativity: "#F4A261",
-  Mindset: "#5A4FF3",
-  Health: "#00C9A7",
-  Knowledge: "#3B82F6",
-  Career: "#8B5CF6",
-  Relationships: "#EC4899",
-  Finance: "#22C55E",
-  Purpose: "#F59E0B",
+  Creativity: "#C97A3D",
+  Mindset: "#6E5AA0",
+  Health: "#5E8F5A",
+  Knowledge: "#3E5E8C",
+  Career: "#9C7A3A",
+  Relationships: "#A8497A",
+  Finance: "#7A8C4A",
+  Purpose: "#2F6F6B",
 };
 function domainColor(domain: string): string {
   return DOMAIN_COLORS[domain] ?? "#8a8a8a";
@@ -442,8 +505,10 @@ export default function OnboardingPage() {
         phone: form.phone,
         current_self: form.currentSelf,
         imagined_self: form.imaginedSelf,
-        goals: form.goals,
-        goal_domains: form.goals, // same label used as domain
+        current_self_notes: form.currentSelfNotes,
+        imagined_self_notes: form.imaginedSelfNotes,
+        goals: form.goals.map((domain) => form.goalTitles[domain]?.trim() || domain),
+        goal_domains: form.goals,
         timeline: form.timeline ?? "Ongoing",
         learning_styles: form.learningStyles,
         media_types: form.mediaTypes,
@@ -487,14 +552,14 @@ export default function OnboardingPage() {
   return (
     <main className="min-h-screen bg-(--color-bg-primary) px-6 py-10 lg:px-10">
       <div className="mx-auto max-w-5xl">
-        <Link href="/" className="text-xl font-extrabold tracking-tight text-(--color-ink)">
+        <Link href="/" className="font-display text-xl font-semibold tracking-tight text-(--color-ink)">
           IABTM
         </Link>
 
         <div className="mt-8 flex items-center gap-4">
           <div className="h-1 flex-1 rounded-full bg-(--color-border-subtle)">
             <div
-              className="h-1 rounded-full bg-(--color-ink) transition-all duration-500"
+              className="h-1 rounded-full bg-(--color-accent-secondary) transition-all duration-500"
               style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
             />
           </div>
@@ -543,7 +608,7 @@ export default function OnboardingPage() {
         </div>
 
         {submitError && (
-          <p className="mt-6 rounded-lg bg-red-50 px-4 py-3 text-[13px] text-red-700">
+          <p className="mt-6 rounded-lg bg-(--color-status-error-bg) px-4 py-3 text-[13px] text-(--color-status-error-text)">
             {submitError}
           </p>
         )}
@@ -561,7 +626,7 @@ export default function OnboardingPage() {
             type="button"
             onClick={handleContinue}
             disabled={!isValid || submitting}
-            className="rounded-full bg-(--color-ink) px-7 py-3 text-[15px] font-medium text-white transition-opacity disabled:opacity-30"
+            className="rounded-full bg-(--color-accent-secondary) px-7 py-3 text-[15px] font-medium text-(--color-text-inverse) transition-opacity disabled:opacity-30"
           >
             {submitting ? "Processing…" : "Continue"}
           </button>

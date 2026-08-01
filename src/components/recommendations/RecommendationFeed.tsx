@@ -12,7 +12,7 @@ interface Props {
 
 function SkeletonCard() {
   return (
-    <div className="min-w-[220px] animate-pulse rounded-2xl border border-(--color-border) bg-white">
+    <div className="min-w-[220px] animate-pulse rounded-2xl border border-(--color-border) bg-(--color-surface)">
       <div className="h-2 w-full rounded-t-2xl bg-(--color-border)" />
       <div className="p-4 space-y-3">
         <div className="h-3 w-16 rounded-full bg-(--color-border)" />

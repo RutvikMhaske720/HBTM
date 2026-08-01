@@ -6,14 +6,14 @@ import { useIdentityStore } from "@/lib/store/identity.store";
 import type { Goal } from "@/lib/api";
 
 const DOMAIN_COLORS: Record<string, string> = {
-  Creativity: "#F4A261",
-  Mindset: "#5A4FF3",
-  Health: "#00C9A7",
-  Knowledge: "#3B82F6",
-  Career: "#8B5CF6",
-  Relationships: "#EC4899",
-  Finance: "#22C55E",
-  Purpose: "#F59E0B",
+  Creativity: "#C97A3D",
+  Mindset: "#6E5AA0",
+  Health: "#5E8F5A",
+  Knowledge: "#3E5E8C",
+  Career: "#9C7A3A",
+  Relationships: "#A8497A",
+  Finance: "#7A8C4A",
+  Purpose: "#2F6F6B",
 };
 
 export default function PathPage() {
@@ -64,7 +64,7 @@ export default function PathPage() {
             <div className="space-y-6">
               {/* Start node */}
               <div className="flex items-center gap-4">
-                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 border-(--color-ink) bg-white text-[11px] font-bold text-(--color-ink)">
+                <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 border-(--color-ink) bg-(--color-surface) text-[11px] font-bold text-(--color-ink)">
                   NOW
                 </div>
                 <div>
@@ -85,7 +85,7 @@ export default function PathPage() {
                     >
                       {i + 1}
                     </div>
-                    <div className="flex-1 rounded-2xl border border-(--color-border) bg-white p-5">
+                    <div className="flex-1 rounded-2xl border border-(--color-border) bg-(--color-surface) p-5">
                       <div className="flex items-center justify-between">
                         <div>
                           <span

@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Home", icon: "⌂" },
   { href: "/dashboard/path", label: "My Path", icon: "◎" },
   { href: "/dashboard/library", label: "Library", icon: "◻" },
-  { href: "/dashboard/agent-lab", label: "Agent Lab", icon: "⬡" },
+  // { href: "/dashboard/agent-lab", label: "Agent Lab", icon: "⬡" },
   { href: "/dashboard/identity", label: "Identity", icon: "◈" },
   { href: "/dashboard/chat", label: "Chat", icon: "◉" },
   { href: "/dashboard/settings", label: "Settings", icon: "⚙" },
@@ -26,7 +26,7 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-(--color-border) px-5">
-        <Link href="/dashboard" className="font-extrabold tracking-tight text-(--color-ink)">
+        <Link href="/dashboard" className="font-display font-semibold tracking-tight text-(--color-ink)">
           {collapsed ? "I" : "IABTM"}
         </Link>
       </div>
@@ -42,7 +42,7 @@ export default function Sidebar() {
                   href={item.href}
                   className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-medium transition-colors ${
                     active
-                      ? "bg-(--color-ink) text-white"
+                      ? "bg-(--color-accent-secondary) text-(--color-text-inverse)"
                       : "text-(--color-text-secondary) hover:bg-(--color-border-subtle) hover:text-(--color-ink)"
                   }`}
                 >
