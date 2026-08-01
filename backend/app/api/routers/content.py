@@ -28,7 +28,10 @@ def _item_to_out(item: dict, viewed_ids: set[str] | None = None) -> ContentItemO
         video_id=item.get("video_id", ""),
         published_at=item["published_at"],
         viewed=item["id"] in (viewed_ids or set()),
-        preview_available=bool(item.get("video_id")) and not get_settings().youtube_mocked,
+        # External providers can be previewed in their official embeddable players.
+        preview_available=bool(item.get("video_id")) or (
+            item.get("source") == "spotify" and "open.spotify.com/track/" in item.get("url", "")
+        ),
     )
 
 

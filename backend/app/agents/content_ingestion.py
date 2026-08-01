@@ -4,7 +4,7 @@ import hashlib
 
 from app.db.database import Store
 from app.db.models import new_content_item
-from app.mcp_tools import reddit, youtube
+from app.mcp_tools import pinterest, reddit, spotify, youtube
 
 
 def _stable_id(source: str, external_id: str) -> str:
@@ -38,6 +38,50 @@ def fetch_more_like_this(
             )
             created.append(db.content_items.upsert(record))
         return created
+
+    # Pinterest is a strong fit for visual Art, but only reads Pins from the
+    # board the account authorises. Other media types continue to use YouTube.
+    if content_type == "Art":
+        for pin in pinterest.get_board_pins(limit=max_results):
+            record = new_content_item(
+                id=_stable_id("pinterest", pin["pin_id"]),
+                title=pin["title"],
+                content_type="Art",
+                domain=resolved_domain,
+                description=pin["description"],
+                growth_potential_score=0.6,
+                difficulty="accessible",
+                duration_minutes=5,
+                mood="curious",
+                source="pinterest",
+                url=pin["url"],
+                thumbnail_url=pin["image_url"],
+                published_at=pin["published_at"],
+            )
+            created.append(db.content_items.upsert(record))
+        if created:
+            return created
+
+    if content_type == "Music":
+        for track in spotify.search_tracks(query=query, max_results=max_results):
+            record = new_content_item(
+                id=_stable_id("spotify", track["track_id"]),
+                title=track["title"],
+                content_type="Music",
+                domain=resolved_domain,
+                description=track["description"],
+                growth_potential_score=0.6,
+                difficulty="accessible",
+                duration_minutes=max(1, track["duration_seconds"] // 60),
+                mood="curious",
+                source="spotify",
+                url=track["url"],
+                thumbnail_url=track["thumbnail_url"],
+                published_at=track["published_at"],
+            )
+            created.append(db.content_items.upsert(record))
+        if created:
+            return created
 
     for video in youtube.search_youtube_videos(query=query, category=resolved_domain, max_results=max_results):
         video_id = video["video_id"]

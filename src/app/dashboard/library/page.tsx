@@ -29,6 +29,7 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [gettingMore, setGettingMore] = useState(false);
   const [activeItem, setActiveItem] = useState<ContentItem | null>(null);
+  const [error, setError] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -40,6 +41,7 @@ export default function LibraryPage() {
       setGoals(activeGoals);
     } catch (error) {
       console.error(error);
+      setError("The library could not be loaded. Confirm that the backend is running, then try again.");
     } finally {
       setLoading(false);
     }
@@ -62,12 +64,14 @@ export default function LibraryPage() {
 
   async function handleGetMore() {
     setGettingMore(true);
+    setError("");
     try {
       await api.getMoreLikeThis(contentType, goals[0]?.domain);
       await load();
       setFilter("Global");
     } catch (error) {
       console.error(error);
+      setError("We could not find more media right now. Check the configured content source and try again.");
     } finally {
       setGettingMore(false);
     }
@@ -98,6 +102,8 @@ export default function LibraryPage() {
         </button>
       </header>
 
+      {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
+
       <div className="space-y-4 border-y border-(--color-border) py-4">
         <div className="flex flex-wrap gap-2">
           {TYPES.map((type) => <button key={type} onClick={() => { setLoading(true); setContentType(type); }} className={`rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors ${contentType === type ? "bg-(--color-accent-secondary) text-(--color-text-inverse)" : "border border-(--color-border) text-(--color-ink) hover:bg-(--color-bg-offwhite)"}`}>{type}</button>)}
@@ -124,7 +130,7 @@ export default function LibraryPage() {
             <div className="flex items-center gap-2 text-[11px] font-medium"><span style={{ color }}>{item.content_type}</span><span className="text-(--color-text-tertiary)">{item.domain}</span></div>
             <h2 className="mt-1 text-[15px] font-semibold text-(--color-ink)">{item.title}</h2>
             <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-(--color-text-secondary)">{item.description}</p>
-            <div className="mt-auto flex items-center justify-between pt-2"><span className="text-[12px] text-(--color-text-tertiary)">{item.duration_minutes}m · {item.difficulty}</span><button onClick={() => openItem(item)} className={`rounded-full px-3 py-1 text-[12px] font-semibold ${fresh ? "bg-(--color-accent-secondary) text-(--color-text-inverse)" : "border border-(--color-border) text-(--color-ink) hover:bg-(--color-bg-offwhite)"}`}>{fresh ? "New" : "Preview"}</button></div>
+            <div className="mt-auto flex items-center justify-between pt-2"><span className="text-[12px] text-(--color-text-tertiary)">{item.duration_minutes}m · {item.difficulty}</span><button onClick={() => openItem(item)} className={`rounded-full px-3 py-1 text-[12px] font-semibold ${fresh ? "bg-(--color-accent-secondary) text-(--color-text-inverse)" : "border border-(--color-border) text-(--color-ink) hover:bg-(--color-bg-offwhite)"}`}>{fresh ? "New" : item.preview_available ? "Preview" : item.url ? "Open" : "Details"}</button></div>
           </div>
         </article>;
       })}</div>}

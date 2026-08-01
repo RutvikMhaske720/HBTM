@@ -1,16 +1,10 @@
-"""MCP: YouTube Server (spec section 8.2.1).
-
-Mocked per this session's setup — no YouTube Data API key was provided.
-Real calls would live behind the `if not settings.youtube_mocked:` branch
-using `httpx` against `https://www.googleapis.com/youtube/v3/...` with
-`settings.youtube_api_key`; the function signatures below already match
-what that branch would return, so wiring it in later doesn't touch callers.
-"""
+"""YouTube Data API integration with a deterministic offline fallback."""
 
 import hashlib
 from datetime import datetime, timedelta, timezone
 
 from app.config import get_settings
+import httpx
 
 _MOCK_CHANNELS = ["Better Every Day", "The Growth Lab", "Slow Living Studio", "Focused Mind Media"]
 
@@ -23,7 +17,27 @@ def _seeded_int(seed: str, low: int, high: int) -> int:
 def search_youtube_videos(query: str, category: str | None = None, max_results: int = 5, safe_search: bool = True) -> list[dict]:
     settings = get_settings()
     if not settings.youtube_mocked:
-        raise NotImplementedError("Real YouTube API integration not wired in this session — no API key provided.")
+        params = {
+            "part": "snippet", "q": query, "type": "video", "maxResults": max_results,
+            "safeSearch": "strict" if safe_search else "none", "videoEmbeddable": "true",
+            "key": settings.youtube_api_key,
+        }
+        with httpx.Client(timeout=15) as client:
+            response = client.get("https://www.googleapis.com/youtube/v3/search", params=params)
+            response.raise_for_status()
+            search_items = response.json().get("items", [])
+            ids = [item.get("id", {}).get("videoId") for item in search_items]
+            ids = [video_id for video_id in ids if video_id]
+            if not ids:
+                return []
+            details = client.get(
+                "https://www.googleapis.com/youtube/v3/videos",
+                params={"part": "snippet,contentDetails", "id": ",".join(ids), "key": settings.youtube_api_key},
+            )
+            details.raise_for_status()
+
+        details_by_id = {item["id"]: item for item in details.json().get("items", [])}
+        return [_youtube_item_to_result(details_by_id[video_id]) for video_id in ids if video_id in details_by_id]
 
     results = []
     for i in range(max_results):
@@ -41,6 +55,23 @@ def search_youtube_videos(query: str, category: str | None = None, max_results: 
             }
         )
     return results
+
+
+def _youtube_item_to_result(item: dict) -> dict:
+    snippet = item.get("snippet", {})
+    duration = item.get("contentDetails", {}).get("duration", "PT0S")
+    import re
+    match = re.fullmatch(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
+    hours, minutes, seconds = (int(part or 0) for part in match.groups()) if match else (0, 0, 0)
+    return {
+        "video_id": item["id"],
+        "title": snippet.get("title", "Untitled video"),
+        "channel": snippet.get("channelTitle", "YouTube"),
+        "duration_seconds": hours * 3600 + minutes * 60 + seconds,
+        "description": snippet.get("description", ""),
+        "tags": [],
+        "published_at": snippet.get("publishedAt", datetime.now(timezone.utc).isoformat()),
+    }
 
 
 def get_video_details(video_id: str) -> dict:
