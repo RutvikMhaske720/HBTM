@@ -1,60 +1,37 @@
-# IamBetterThanMe (HBTM) — Monorepo
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-> A multi-agent personal growth recommendation engine with a rich web UI, Chrome extension, and 3D visualization layer.
+## Getting Started
 
-## Structure
-
-```
-/HBTM
-├── web/              — Main React + Vite web application
-├── extension/        — Chrome Extension (Manifest V3)
-├── design-system/    — Shared tokens, components, and guidelines
-│   ├── tokens/       — design-tokens.css + design-tokens.ts
-│   └── components/   — Shared component library (Phase 1+)
-└── docs/             — Project documentation
-    ├── PROJECT_STATE.md        — Living session handoff doc (READ FIRST)
-    └── component-inventory.md — Screen + component build plan
-```
-
-## Build Order (see PROJECT_STATE.md for current phase)
-
-| Phase | What |
-|-------|------|
-| 0 | Foundation — tokens, scaffold (✅ DONE) |
-| 1 | Core Web UI/UX — Sessions 2–5 |
-| 2 | Agent Logs Dashboard — Session 6 |
-| 3 | Chrome Extension — Sessions 7–9 |
-| 4 | Integration Pass — Session 10 |
-| 5 | 3D UI Layer — Sessions 11–15 |
-| 6 | Privacy/Security UI — Session 16 |
-
-## Key Decisions
-
-- **Font**: Satoshi (Fontshare) — no substitutes
-- **Colors**: hsl(250°) indigo-lavender anchor
-- **Easing**: `--ease-particle-merge: cubic-bezier(0.08, 0.82, 0.17, 1.0)` — locked for Three.js Phase 5
-- **Extension**: Manifest V3 / IndexedDB
-- **3D**: Three.js / React Three Fiber — Phase 5 ONLY
-
-## Getting Started (Session 2+)
+First, run the development server:
 
 ```bash
-# Web app
-cd web && npm install && npm run dev
-
-# Extension
-cd extension && npm install && npm run build
-# Load unpacked from extension/dist in chrome://extensions
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Design System
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Import design tokens in your app's root CSS:
-```css
-@import '../design-system/tokens/design-tokens.css';
-```
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-For TypeScript / Three.js:
-```ts
-import { colors, easing, particleConfig } from '../design-system/tokens/design-tokens';
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# HBTM
