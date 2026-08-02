@@ -3,7 +3,7 @@
  * Set NEXT_PUBLIC_API_URL in .env.local to point at the FastAPI server.
  */
 
-export const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+export const BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://hbtm.onrender.com";
 
 async function req<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
