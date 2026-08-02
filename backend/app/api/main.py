@@ -72,10 +72,15 @@ def create_app() -> FastAPI:
     app.include_router(identity_router)
     app.include_router(content_router)
 
-    @app.get("/health")
+   @app.get("/health")
     def health():
         return {"status": "ok", "service": "IABTM Backend"}
 
+    @app.get("/", include_in_schema=False)
+    def redirect_to_docs():
+        return RedirectResponse(url="/docs")
+
+    return app
     return app
 
 
