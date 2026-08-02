@@ -6,10 +6,19 @@ Lifespan:
   - CORS configured to allow the Next.js dev server.
 """
 
+"""FastAPI application factory.
+
+Lifespan:
+  - Creates all DB tables (idempotent via create_all).
+  - Seeds the content library if empty.
+  - CORS configured to allow the Next.js dev server.
+"""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse  # Added this import for your redirect
 
 from app.config import get_settings
 from app.db.database import SessionLocal, init_db
@@ -72,16 +81,18 @@ def create_app() -> FastAPI:
     app.include_router(identity_router)
     app.include_router(content_router)
 
-   @app.get("/health")
+    # Fixed: Changed from 3 spaces to exactly 4 spaces
+    @app.get("/health")
     def health():
         return {"status": "ok", "service": "IABTM Backend"}
 
+    # Fixed: Aligned properly with 4 spaces
     @app.get("/", include_in_schema=False)
     def redirect_to_docs():
         return RedirectResponse(url="/docs")
 
-    return app
-    return app
+    return app  # Fixed: Removed the duplicate return line that followed this
 
 
 app = create_app()
+
